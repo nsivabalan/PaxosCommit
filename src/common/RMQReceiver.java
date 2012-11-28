@@ -45,8 +45,8 @@ public class RMQReceiver {
 		}
 		
 		QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-		System.out.println("Received Message "+ delivery.getBody().toString());
-		return Message.getDeSerializedMessage(delivery.getBody().toString());
-		
+		String msg = new String(delivery.getBody());
+		System.out.println("Received Message "+msg);
+		return Message.getDeSerializedMessage(msg);		
 	}
 }

@@ -1,29 +1,23 @@
 import java.io.IOException;
 
-import javax.sound.midi.Receiver;
+
 
 import common.*;
 
-public class Test {
+public class Receiver {
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		Common.RMQServer = "169.231.111.161";
-		
+		Common.RMQServer = "localhost";		
 		
 		try {
-			RMQSender sender = new RMQSender("Broadcast");
 			RMQReceiver receiver = new RMQReceiver("Broadcast", true);
-			int i = 0;
-			while(i < 10)
-			{
-				Message message = new Message("HelloWorld "+i, "ClassName");
-				sender.SendMessage(message);
-				Message rMessage = receiver.ReceiveMessage();
-				i++;
+			while(true)
+			{	
+				Message rMessage = receiver.ReceiveMessage();			
 			}
 			
 		} catch (IOException e) {
