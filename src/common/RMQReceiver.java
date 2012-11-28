@@ -12,38 +12,39 @@ public class RMQReceiver {
 	private ConnectionFactory factory;
 	private Connection connection;
 	private Channel channel;
+	private QueueingConsumer consumer;
 	private Boolean broadcast;
+	private String queueName;
 	
 	public RMQReceiver(String exchangeName, Boolean broadcast) throws IOException{
 		this.broadcast = broadcast;
 		this.EXCHANGE_NAME = exchangeName;
-		factory = new ConnectionFactory();
-		factory.setHost(Common.RMQServer);
-		connection = factory.newConnection();
-		channel = connection.createChannel();		
+		this.factory = new ConnectionFactory();
+		this.factory.setHost(Common.RMQServer);
+		this.connection = this.factory.newConnection();
+		this.channel = this.connection.createChannel();		
+		
 		if (this.broadcast)
 		{
-			channel.exchangeDeclare(this.EXCHANGE_NAME, "fanout");
+			this.channel.exchangeDeclare(this.EXCHANGE_NAME, "fanout");
+			this.queueName = this.channel.queueDeclare().getQueue();
+			this.channel.queueBind(this.queueName, this.EXCHANGE_NAME, "fanout");			
 		}
+		else 
+		{
+			this.channel.queueDeclare(this.EXCHANGE_NAME, false, false, false, null);
+		}
+		
+		this.consumer = new QueueingConsumer(this.channel);
+		
+		if(this.broadcast)
+			this.channel.basicConsume(this.queueName, true, this.consumer);
+		else
+			this.channel.basicConsume(this.EXCHANGE_NAME, true, this.consumer);
 	}
 	
 	public Message ReceiveMessage() throws IOException, InterruptedException
-	{
-		String queueName;
-		QueueingConsumer consumer = new QueueingConsumer(channel);
-		
-		if(this.broadcast)
-		{
-			queueName = channel.queueDeclare().getQueue();
-			channel.queueBind(queueName, this.EXCHANGE_NAME, "fanout");
-			channel.basicConsume(queueName, true, consumer);
-		}
-		else
-		{
-			channel.queueDeclare(this.EXCHANGE_NAME, false, false, false, null);
-			channel.basicConsume(this.EXCHANGE_NAME, true, consumer);
-		}
-		
+	{	
 		QueueingConsumer.Delivery delivery = consumer.nextDelivery();
 		String msg = new String(delivery.getBody());
 		System.out.println("Received Message "+msg);
