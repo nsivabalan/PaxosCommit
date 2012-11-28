@@ -18,11 +18,12 @@ public class Test {
 			RMQSender sender = new RMQSender("Broadcast");
 			RMQReceiver receiver = new RMQReceiver("Broadcast", true);
 			int i = 0;
-			while(true)
+			while(i < 10)
 			{
 				Message message = new Message("HelloWorld "+i, "ClassName");
 				sender.SendMessage(message);
-				Message rMessage = receiver.ReceiveMessage();				
+				Message rMessage = receiver.ReceiveMessage();
+				i++;
 			}
 			
 		} catch (IOException e) {
