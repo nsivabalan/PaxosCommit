@@ -21,6 +21,6 @@ public class NetworkAddress {
 	
 	public Message ReceiveMessage()
 	{
-	return new Message();	
+	return new Message("","");	
 	}
 }
