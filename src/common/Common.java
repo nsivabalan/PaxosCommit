@@ -4,8 +4,10 @@ import com.google.gson.*;
 
 public class Common {
 	public enum State {ACTIVE, PAUSED};
-	public static String RMQServer;
 	
+	public enum RequestType {PREPARE, COMMIT, ABORT};
+	public static String FilePath = "";
+	public static String RMQServer;
 	public static String Serialize(Object message)
 	{
 		Gson gson = new Gson();
