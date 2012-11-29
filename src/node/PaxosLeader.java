@@ -1,6 +1,9 @@
-package common;
+package node;
 
 import java.io.IOException;
+
+import common.RMQReceiver;
+import common.RMQSender;
 
 public class PaxosLeader extends Node{
 	private RMQSender bcastQueueSender;

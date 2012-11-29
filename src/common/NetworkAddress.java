@@ -13,14 +13,14 @@ public class NetworkAddress {
 		this.server = server;
 	}
 	
-	public boolean SendMessage(Message msg)
+	public boolean SendMessage(MessageWrapper msg)
 	{
 		
 	return true;
 	}
 	
-	public Message ReceiveMessage()
+	public MessageWrapper ReceiveMessage()
 	{
-	return new Message("","");	
+	return new MessageWrapper("","");	
 	}
 }

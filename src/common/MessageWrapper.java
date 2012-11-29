@@ -2,11 +2,11 @@ package common;
 import com.google.gson.*;
 
 // Message is a wrapper class to abstract any message class.
-public class Message {
+public class MessageWrapper {
 	private String serializedMessage;
 	private String messageClass;
 	
-	public Message(String serializedMessage, String className)
+	public MessageWrapper(String serializedMessage, String className)
 	{
 		this.serializedMessage = serializedMessage;
 		this.messageClass = className;		
@@ -19,10 +19,10 @@ public class Message {
 	}
 	
 	//Static function to get Deserialized message.
-	public static Message getDeSerializedMessage(String json)
+	public static MessageWrapper getDeSerializedMessage(String json)
 	{
 		Gson gson = new Gson();
-		return gson.fromJson(json, Message.class);
+		return gson.fromJson(json, MessageWrapper.class);
 	}
 	
 }

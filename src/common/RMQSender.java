@@ -19,7 +19,7 @@ public class RMQSender {
 		channel.exchangeDeclare(this.EXCHANGE_NAME, "fanout");		
 	}
 
-	public void SendMessage(Message message) throws IOException
+	public void SendMessage(MessageWrapper message) throws IOException
 	{
 		channel.basicPublish(this.EXCHANGE_NAME, "", null, message.getSerializedMessage().getBytes());
 		System.out.println("Sent Message "+ message.getSerializedMessage());

@@ -1,4 +1,4 @@
-package common;
+package node;
 import java.io.IOException;
 import java.util.logging.Logger;
 import java.util.HashMap;
@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.Queue;
 
 import common.Common;
+import common.RMQReceiver;
+import common.RMQSender;
+import common.Request;
+import common.Resource;
 
 public class Node {
 	

@@ -20,7 +20,7 @@ public class Sender {
 			int i = 20;
 			while(i < 30)
 			{
-				Message message = new Message("HelloWorld "+i, "ClassName");
+				MessageWrapper message = new MessageWrapper("HelloWorld "+i, "ClassName");
 				sender.SendMessage(message);
 				i++;
 			}

@@ -1,6 +1,10 @@
-package common;
+package node;
 
 import java.io.IOException;
+
+import common.RMQReceiver;
+
+
 
 public class Acceptor extends Node {
 	private RMQReceiver bcastQueue;	 

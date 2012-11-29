@@ -17,7 +17,7 @@ public class Receiver {
 			RMQReceiver receiver = new RMQReceiver("Broadcast", true);
 			while(true)
 			{	
-				Message rMessage = receiver.ReceiveMessage();			
+				MessageWrapper rMessage = receiver.ReceiveMessage();			
 			}
 			
 		} catch (IOException e) {

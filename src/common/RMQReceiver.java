@@ -43,11 +43,11 @@ public class RMQReceiver {
 			this.channel.basicConsume(this.EXCHANGE_NAME, true, this.consumer);
 	}
 	
-	public Message ReceiveMessage() throws IOException, InterruptedException
+	public MessageWrapper ReceiveMessage() throws IOException, InterruptedException
 	{	
 		QueueingConsumer.Delivery delivery = consumer.nextDelivery();
 		String msg = new String(delivery.getBody());
 		System.out.println("Received Message "+msg);
-		return Message.getDeSerializedMessage(msg);		
+		return MessageWrapper.getDeSerializedMessage(msg);		
 	}
 }

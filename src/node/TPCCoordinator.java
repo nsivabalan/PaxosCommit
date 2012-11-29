@@ -1,8 +1,11 @@
-package common;
+package node;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import common.Request;
+import common.Resource;
 
 public class TPCCoordinator extends Node {
 	private class RoundStatus {
