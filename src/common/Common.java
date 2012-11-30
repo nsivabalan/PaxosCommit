@@ -9,7 +9,10 @@ public class Common {
 	//Static Attributes
 	public static String FilePath = "";
 	public static String RMQServer = "";
+	public static Integer NoAcceptors = 3;
 	private static Map<String, String> NodeMap = new HashMap<String, String>();
+	public static String InQueueSuffix = "_IN";
+	
 	
 	//Instance Attributes
 	
@@ -17,6 +20,10 @@ public class Common {
 	//Enums
 	public enum State {ACTIVE, PAUSED};
 	public enum RequestType {PREPARE, COMMIT, ABORT};
+	
+	public enum PaxosLeaderState{PREPARE, ACCEPT, COMMIT, COMMIT_ACK, ABORT};
+	public enum AcceptorState{ACCEPT, COMMIT, COMMIT_ACK, ABORT, ABORT_ACK};
+	public enum TPCState{INIT, COMMIT, COMMIT_ACK, ABORT};
 	
 	//Static Functions
 	public static String Serialize(Object message)

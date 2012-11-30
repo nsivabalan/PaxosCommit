@@ -8,10 +8,7 @@ import common.Request;
 import common.Resource;
 
 public class TPCCoordinator extends Node {
-	private class RoundStatus {
-		Resource resource;
-		Request request;
-	}
+	//private Map<Integer, Map<>>
 	
 	private Map<String, String> resourcePaxosLeaderMap;
 	
