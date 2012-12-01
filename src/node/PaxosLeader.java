@@ -76,7 +76,7 @@ public class PaxosLeader extends Node{
 			int lsn=this.getLSNfromMessageData(msg.getData());
 			if(lsn!=-1)
 			{
-				this.processAppendRequest(lsn);
+				this.ProcessAppendRequest(lsn);
 			}
 			else {}
 			
@@ -86,10 +86,10 @@ public class PaxosLeader extends Node{
 		}		
 	}
 	
-	public void processAppendRequest(int lsn) throws IOException
+	public void ProcessAppendRequest(int lsn) throws IOException
 	{
-		PaxosMsg paxosmsg=new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACCEPT, lsn);
-		MessageWrapper msgwrap=new MessageWrapper(Common.Serialize(paxosmsg), "PaxosMsg");
+		PaxosMsg paxosmsg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACCEPT, lsn);
+		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(paxosmsg), paxosmsg.getClass());
 		bcastQueueSender.SendMessage(msgwrap);
 	}
 	
@@ -117,7 +117,7 @@ public class PaxosLeader extends Node{
 			{
 				//ignore,bcz some other trans is goin on
 				
-				return -1;
+				lsn = -1;
 			}
 			else
 			{
@@ -126,10 +126,9 @@ public class PaxosLeader extends Node{
 				temp.lsn=lsn;
 				temp.state = Common.PaxosLeaderState.ACCEPT;
 				lsnTransactionStatusMap.put(lsn,temp);
-				PaxosMsg msg=new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACCEPT, lsn);
-				MessageWrapper msgwrap=new MessageWrapper(Common.Serialize(msg), "PaxosMsg");
-				bcastQueueSender.SendMessage(msgwrap);
 				
+				PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACCEPT, lsn);
+				bcastQueueSender.SendMessage(Common.CreateMessageWrapper(msg));				
 			}
 			
 		}
@@ -142,10 +141,10 @@ public class PaxosLeader extends Node{
 		TransactionStatus temp = this.lsnTransactionStatusMap.get(lsn);
 		temp.gsn = gsn;
 		this.lsnTransactionStatusMap.put(lsn, temp);
+		
 		//propagate info to all acceptors
-		PaxosMsg msg=new PaxosMsg(this.nodeId, Common.PaxosMsgType.COMMIT,lsn,gsn);
-		MessageWrapper msgwrap=new MessageWrapper(Common.Serialize(msg), "PaxosMsg");
-		bcastQueueSender.SendMessage(msgwrap);
+		PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.COMMIT,lsn,gsn); 
+		bcastQueueSender.SendMessage(Common.CreateMessageWrapper(msg));
 	}
 	
 	// Update Acceptor List on receiving ack response for PREPARE Phase from an Acceptor.
@@ -192,9 +191,8 @@ public class PaxosLeader extends Node{
 		 */
 		
 		//propagate info to all acceptors
-	    PaxosMsg msg=new PaxosMsg(this.nodeId, Common.PaxosMsgType.ABORT, lsn);
-		MessageWrapper msgwrap=new MessageWrapper(Common.Serialize(msg), "PaxosMsg");
-		bcastQueueSender.SendMessage(msgwrap);
+	    PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ABORT, lsn);		
+		bcastQueueSender.SendMessage(Common.CreateMessageWrapper(msg));
 	}
 	
 	public void ProcessAbortAckMessage(int lsn)

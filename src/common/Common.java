@@ -2,6 +2,8 @@ package common;
 import java.util.HashMap;
 import java.util.Map;
 
+import message.PaxosMsg;
+
 import com.google.gson.*;
 
 
@@ -38,7 +40,8 @@ public class Common {
 	}
 	
 	//TODO: Use this function instead of local deserialization function in RMQReceiver. 
-	public static <T> T Deserialize(String json, T className)
+	@SuppressWarnings("rawtypes")
+	public static <T> T Deserialize(String json, Class className)
 	{
 		Gson gson = new Gson();
 		return (T) gson.fromJson(json, className.getClass());
@@ -52,6 +55,10 @@ public class Common {
 	//Add an entry to Node Id to Address Translation Map.
 	public static void AddNodeAddress(String nodeId, String nodeAddress){
 		NodeMap.put(nodeId, nodeAddress);
+	}
+	
+	public static <T> MessageWrapper CreateMessageWrapper(T message){
+		return new MessageWrapper(Common.Serialize(message), message.getClass());
 	}
 	
 	//Instance Functions
