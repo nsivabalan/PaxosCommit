@@ -4,13 +4,13 @@ import java.io.IOException;
 
 import com.rabbitmq.client.*;
 
-public class RMQSender {
+public class RMQSender_Old {
 	private String EXCHANGE_NAME = "";
 	private ConnectionFactory factory;
 	private Connection connection;
 	private Channel channel;
 	
-	public RMQSender(String exchangeName) throws IOException{		
+	public RMQSender_Old(String exchangeName) throws IOException{		
 		this.EXCHANGE_NAME = exchangeName;
 		factory = new ConnectionFactory();
 		factory.setHost(Common.RMQServer);

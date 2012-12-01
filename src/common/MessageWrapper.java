@@ -41,8 +41,7 @@ public class MessageWrapper {
 	//Static function to get Deserialized Inner message.
 	public static MessageBase getDeSerializedInnerMessage(String json) throws ClassNotFoundException
 	{
-		MessageWrapper msg = Common.Deserialize(json, MessageWrapper.class);
-		
+		MessageWrapper msg = Common.Deserialize(json, MessageWrapper.class);		
 		MessageBase innerMsg = Common.Deserialize(msg.serializedMessage, Common.GetClassfromString(msg.messageClass));
 		return innerMsg;
 	}

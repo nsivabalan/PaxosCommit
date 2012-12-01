@@ -11,20 +11,20 @@ public class Sender {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		Common.RMQServer = "ec2-174-129-81-226.compute-1.amazonaws.com";
+		Common.RMQServer = "localhost";
 		
 		
 		try {
-			String exchange = "test_bcast";
-			RMQSenderNew sender = new RMQSenderNew();
-			sender.DeclareExchange(exchange, "fanout");
+			String exchange = "test_direct";
+			MessageController sender = new MessageController();
+			sender.DeclareExchange(exchange, "direct");
 			
-			int i = 20;
-			while(i < 30)
+			int i = 30;
+			while(i < 40)
 			{
 				MessageWrapper message = new MessageWrapper("HelloWorld "+i, MessageWrapper.class);
 				System.out.println("Send");
-				sender.SendMessage(message, exchange, "");
+				sender.SendMessage(message, exchange, "node3");
 				i++;
 			}
 			

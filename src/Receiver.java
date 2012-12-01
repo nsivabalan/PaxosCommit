@@ -11,12 +11,12 @@ public class Receiver {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		Common.RMQServer = "ec2-174-129-81-226.compute-1.amazonaws.com";		
+		Common.RMQServer = "localhost";		
 		
 		try {
-			String[] exchanges = {"test_bcast"};
+			String[] exchanges = {"test_direct"};
 			String nodeId = args[1];
-			RMQReceiverNew receiver = new RMQReceiverNew(exchanges, nodeId);
+			RMQReceiver receiver = new RMQReceiver(exchanges, nodeId);
 			
 			while(true)
 			{	

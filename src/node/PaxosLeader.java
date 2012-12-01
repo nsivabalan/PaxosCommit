@@ -11,7 +11,7 @@ import common.Common.PaxosLeaderState;
 import common.Common.State;
 import common.MessageWrapper;
 import common.RMQReceiver;
-import common.RMQSender;
+import common.RMQSender_Old;
 
 import message.ClientOpMsg;
 import message.PaxosMsg;
@@ -32,7 +32,7 @@ public class PaxosLeader extends Node{
 	
 	private static int lsnCounter = 0;
 	
-	private RMQSender bcastQueueSender;
+	private RMQSender_Old bcastQueueSender;
 	private RMQReceiver tpcBcastQueueReceiver;
 		
 	private BidiMap dataLSNMap;
@@ -42,7 +42,7 @@ public class PaxosLeader extends Node{
 	
 	public PaxosLeader(String nodeId, String fileName, String bcastQueueName, String tpcBcastQueueName) throws IOException {		
 		super(nodeId, fileName);
-		this.bcastQueueSender = new RMQSender(bcastQueueName);
+		this.bcastQueueSender = new RMQSender_Old(bcastQueueName);
 		this.tpcBcastQueueReceiver = new RMQReceiver(tpcBcastQueueName, true);
 		
 		this.dataLSNMap = new DualHashBidiMap();		

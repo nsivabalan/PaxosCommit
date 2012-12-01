@@ -10,9 +10,12 @@ import com.google.gson.*;
 public class Common {
 	//Static Attributes
 	public static String FilePath = "";
-		//RMQ Attributes
+	
+	//RMQ Attributes
 	public static String RMQServer = "";
 	public static String DirectMessageExchange = "DirectExchange";
+	public static String PaxosLeaderExchange = "PaxosLeaderExchange";
+	public static String TCPCoordinatorExchange = "2PCCoordinatorExchange";
 	
 	public static Integer NoAcceptors = 3;
 	private static Map<String, String> NodeMap = new HashMap<String, String>();
@@ -47,7 +50,9 @@ public class Common {
 	public static <T> T Deserialize(String json, Class className)
 	{
 		Gson gson = new Gson();
-		return (T) gson.fromJson(json, className.getClass());
+		System.out.println(json);
+		System.out.println(gson.fromJson(json, className));
+		return (T) gson.fromJson(json, className);
 	}
 	
 	//Translate Node Address from Node Id.
