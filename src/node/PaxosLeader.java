@@ -51,7 +51,7 @@ public class PaxosLeader extends Node{
 	}
 	
 	
-	public void run() throws IOException, InterruptedException{
+	public void run() throws IOException, InterruptedException, ClassNotFoundException{
 		
 		 while (true) {
 			 MessageWrapper msgwrap= tpcBcastQueueReceiver.ReceiveMessage();    
@@ -68,7 +68,7 @@ public class PaxosLeader extends Node{
 		  }		
 	}
 	
-	
+	//method used to process client msg
 	public void processClientMessageData(ClientOpMsg msg) throws IOException
 	{
 		if(msg.getType()==Common.ClientOPMsgType.APPEND)
@@ -86,6 +86,7 @@ public class PaxosLeader extends Node{
 		}		
 	}
 	
+	//method used to process append request from the client
 	public void ProcessAppendRequest(int lsn) throws IOException
 	{
 		PaxosMsg paxosmsg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACCEPT, lsn);
@@ -172,6 +173,7 @@ public class PaxosLeader extends Node{
 		}
 	}
 	
+	//method used to send info msg to Two Phase coordinator
 	public void SendInfoMessageToTPCCoordinator(int lsn)
 	{
 		String msg = (String) this.dataLSNMap.getKey(lsn);
@@ -182,7 +184,7 @@ public class PaxosLeader extends Node{
 		
 	}
 	
-	
+	//method used to process abort msg from the two phase coordinator
 	public void ProcessAbortMessage(int lsn) throws IOException
 	{
 		/*
@@ -195,6 +197,7 @@ public class PaxosLeader extends Node{
 		bcastQueueSender.SendMessage(Common.CreateMessageWrapper(msg));
 	}
 	
+	//method used to process the abort msg from the two phase coordinator
 	public void ProcessAbortAckMessage(int lsn)
 	{
 		/*

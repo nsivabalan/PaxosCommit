@@ -33,7 +33,7 @@ public class Common {
 	
 	public enum PaxosLeaderState{PREPARE, ACCEPT, COMMIT, COMMIT_ACK, ABORT};
 	public enum AcceptorState{ACCEPT, COMMIT, COMMIT_ACK, ABORT, ABORT_ACK};
-	public enum TPCState{INIT, COMMIT, COMMIT_ACK, ABORT};
+	public enum TPCState{INIT, COMMIT, COMMIT_ACK, ABORT, ABORT_ACK};
 	
 	//Static Functions
 	public static <T> String Serialize(T message)
