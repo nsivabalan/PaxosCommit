@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import message.ClientOpMsg;
 import message.TwoPCMsg;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import java.sql.Timestamp;
 import common.Common;
+import common.Common.ClientOPMsgType;
 import common.Tuple;
 import common.Common.TPCState;
 import common.Common.TwoPCMsgType;
@@ -98,7 +101,6 @@ public class TPCCoordinator extends Node {
 					temp.state=TPCState.COMMIT;
 					int gsn=this.getNewGSN();
 					temp.gsn=gsn;
-					//this.gsntoDataMap.put(gsn, data);
 					datagsntoTwoPhaseStatus.put(data, temp);
 					TwoPhaseCommitStatus cur_stat=(TwoPhaseCommitStatus) datagsntoTwoPhaseStatus.get(gsn);
 					Map<String,Integer> tempmap=cur_stat.nodeidtoLsnMap;
@@ -133,7 +135,8 @@ public class TPCCoordinator extends Node {
 			if((temp.nodeidtoLsnCommitackMap.size()==Common.NoPaxosLeaders) && temp.state== TPCState.COMMIT){					
 					temp.state=TPCState.COMMIT_ACK;	
 					datagsntoTwoPhaseStatus.put(gsn, temp);
-					//send commit msg to client				
+					SendClientCommitResponse("append","done with append");
+					//fix this
 			}
 			else{
 				temp.tmstamp_final=new Timestamp(new Date().getTime());
@@ -153,7 +156,7 @@ public class TPCCoordinator extends Node {
 		if((temp.nodeidtoLsnAbortackMap.size()==Common.NoPaxosLeaders) && temp.state== TPCState.ABORT){					
 				temp.state=TPCState.ABORT_ACK;
 				datagsntoTwoPhaseStatus.put(data, temp);
-				//send abort msg to client				
+				SendClientAbortResponse(data);			
 		}
 		else{
 			temp.tmstamp_final=new Timestamp(new Date().getTime());
@@ -161,6 +164,28 @@ public class TPCCoordinator extends Node {
 		}
 		}
 		
+	}
+	
+	public void SendClientCommitResponse(String response,String data)
+	{
+		ClientOpMsg msg;
+		if(response.equals("read"))
+		msg=new ClientOpMsg(this.nodeId, ClientOPMsgType.READ_RESPONSE, data);
+		if(response.equals("append"))
+		msg=new ClientOpMsg(this.nodeId, ClientOPMsgType.APPEND_RESPONSE, data);
+		
+	}	
+	
+	public void SendClientAbortResponse(String data)
+	{
+		ClientOpMsg msg=new ClientOpMsg(this.nodeId, ClientOPMsgType.ABORT, data);
+	}
+	
+	public void SendClientMessage(ClientOpMsg msg) throws IOException
+	{
+		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
+		this.messageController.SendMessage(msgwrap, Common.DirectMessageExchange, "");
+		//fix this
 	}
 	
 	//if TPC doesnt receive info msg from both paxos leaders, it sends a abort msg paxos leader who has just sent the data
