@@ -18,7 +18,8 @@ public class Common {
 	public static String TPCCoordinatorExchange = "2PCCoordinatorExchange";
 	public static String directExchangeType = "direct";
 	public static String bcastExchangeType = "fanout";
-	public static Integer NoAcceptors = 3;
+	public static Integer NoAcceptors = 3;	
+	public static Integer NoPaxosLeaders = 3;
 	private static Map<String, String> NodeMap = new HashMap<String, String>();
 	public static String InQueueSuffix = "_IN";
 	
