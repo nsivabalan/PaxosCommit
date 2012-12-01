@@ -36,10 +36,10 @@ public class Common {
 	public enum TPCState{INIT, COMMIT, COMMIT_ACK, ABORT};
 	
 	//Static Functions
-	public static String Serialize(Object message)
+	public static <T> String Serialize(T message)
 	{
 		Gson gson = new Gson();
-		return gson.toJson(message);
+		return gson.toJson(message, message.getClass());
 	}
 	
 	//TODO: Use this function instead of local deserialization function in RMQReceiver. 
@@ -64,6 +64,11 @@ public class Common {
 		return new MessageWrapper(Common.Serialize(message), message.getClass());
 	}
 	
+	public static Class GetClassfromString(String s) throws ClassNotFoundException
+	{
+		Class<?> cls = Class.forName(s);
+		return cls;
+	}
 	//Instance Functions
 	
 	

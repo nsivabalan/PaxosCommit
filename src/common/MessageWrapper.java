@@ -6,13 +6,19 @@ import com.google.gson.*;
 // Message is a wrapper class to abstract any message class.
 public class MessageWrapper {
 	private String serializedMessage;
-	private Class messageClass;
+	private String messageClass;
 	
 	public MessageWrapper(String serializedMessage, Class className)
 	{
 		this.serializedMessage = serializedMessage;
-		this.messageClass = className;		
+		this.messageClass = className.getName();		
 	}	
+	
+	public MessageWrapper(String serializedMessage, String className)
+	{
+		this.serializedMessage = serializedMessage;
+		this.messageClass = className;		
+	}
 	
 	//Serialize the Message Wrapper Class.
 	public String getSerializedMessage()
@@ -27,17 +33,20 @@ public class MessageWrapper {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public Class getmessageclass()
+	public Class getmessageclass() throws ClassNotFoundException
 	{
-		return this.messageClass;
+		return Common.GetClassfromString(this.messageClass);
 	}
 	
 	//Static function to get Deserialized Inner message.
-	public static MessageBase getDeSerializedInnerMessage(String json)
+	public static MessageBase getDeSerializedInnerMessage(String json) throws ClassNotFoundException
 	{
 		MessageWrapper msg = Common.Deserialize(json, MessageWrapper.class);
-		MessageBase innerMsg = Common.Deserialize(msg.serializedMessage, msg.messageClass);
+		
+		MessageBase innerMsg = Common.Deserialize(msg.serializedMessage, Common.GetClassfromString(msg.messageClass));
 		return innerMsg;
 	}
+	
+	
 	
 }

@@ -23,6 +23,7 @@ public class Sender {
 			while(i < 30)
 			{
 				MessageWrapper message = new MessageWrapper("HelloWorld "+i, MessageWrapper.class);
+				System.out.println("Send");
 				sender.SendMessage(message, exchange, "");
 				i++;
 			}
