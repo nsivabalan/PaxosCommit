@@ -1,44 +1,52 @@
 package message;
-
-
+import common.Common;
 /*
- * This class is used to model the messages dealing with paxos, like the prepare msg, acknowledge msg and info msg which the 2PC coordinator
- * sends to all the paxos leaders
+ * This class is used to model the messages dealing with paxos, like the accept msg, acknowledge msg and commit or abort msg which 
+ * the paxos leader sends to all the acceptors in its paxos group
  */
 
 public class PaxosMsg extends MessageBase{
+	private String nodeid;
+	private Common.PaxosMsgType type;
+	private int lsn; 
+	private int gsn;
+	private String data; 	
 	
-	public enum msg_type {PREPARE,ACK,COMMIT,ABORT};
-	msg_type type;
-	int ballotnum; 
-	int accept_num;
-	String accept_val; 
+	//to send data to all acceptors for first time
+	public PaxosMsg(String nodeid,Common.PaxosMsgType type,int lsn,String data)
+	{
+		this.nodeid=nodeid;
+		this.type=type;
+		this.lsn=lsn;
+		this.data=data;
+	}
 	
+	//to send accept msgs to acceptors after getting gsn from TPC
+	public PaxosMsg(String nodeid,Common.PaxosMsgType type,int lsn, int gsn)
+	{
+		this.nodeid=nodeid;
+		this.type=type;
+		this.lsn=lsn;
+		this.gsn=gsn;
+	}	
 	
-	public msg_type getType() {
+	//send commit/abort msg to acceptors after getting response from TPC
+	public PaxosMsg(String nodeid,Common.PaxosMsgType type,int gsn)
+	{
+		this.nodeid=nodeid;
+		this.type=type;		
+		this.gsn=gsn;
+	}
+	
+    // when PL doesnt get response from TPC, what do we do?
+	//retry or send abort msg to acceptors, if so, what is de format of the msg?(PaxosMsgType,lsn)
+	
+	public Common.PaxosMsgType getType() {
 		return type;
 	}
 	
-	public void setType(msg_type type) {
+	public void setType(Common.PaxosMsgType type) {
 		this.type = type;
-	}
-	public int getBallotnum() {
-		return ballotnum;
-	}
-	public void setBallotnum(int ballotnum) {
-		this.ballotnum = ballotnum;
-	}
-	public int getAccept_num() {
-		return accept_num;
-	}
-	public void setAccept_num(int accept_num) {
-		this.accept_num = accept_num;
-	}
-	public String getAccept_val() {
-		return accept_val;
-	}
-	public void setAccept_val(String accept_val) {
-		this.accept_val = accept_val;
 	}
 	
 }

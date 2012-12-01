@@ -20,6 +20,11 @@ public class Common {
 	//Enums
 	public enum State {ACTIVE, PAUSED};
 	public enum RequestType {PREPARE, COMMIT, ABORT};
+	public enum ClientOPMsgType{READ,APPEND,READ_RESPONSE,APPEND_RESPONSE,ABORT};
+	public enum PaxosMsgType{ACCEPT,ACK,COMMIT,ABORT};
+	public enum TwoPCMsgType{COMMIT,ABORT,INFO};
+	public enum SiteCrashMsgType{CRASH,RECOVER};
+	public enum BcastMsgType{COMMIT_ACK,ABORT_ACK};
 	
 	public enum PaxosLeaderState{PREPARE, ACCEPT, COMMIT, COMMIT_ACK, ABORT};
 	public enum AcceptorState{ACCEPT, COMMIT, COMMIT_ACK, ABORT, ABORT_ACK};

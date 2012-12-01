@@ -16,12 +16,12 @@ import common.Request;
 import common.Resource;
 
 public class Node {
-	private String nodeId;
+	protected String nodeId;
 	private Resource localResource;
 	private Map<Integer, Request> requestMap;
 	private Queue<Request> requestQueue;
 	
-	private RMQReceiver inQueue;
+	protected RMQReceiver inQueue;
 	
 	private final static Logger LOGGER = Logger.getLogger(Node.class.getName());
 	private static FileHandler logFile;
