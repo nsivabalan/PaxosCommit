@@ -4,6 +4,7 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class Node {
 		LOGGER.addHandler(logFile);		
 	}	
 
-	public void DeclareExchanges( Tuple<String, String>[] exchanges) throws IOException
+	public void DeclareExchanges( ArrayList<Tuple<String, String>> exchanges) throws IOException
 	{
 		//Declare exchanges for the sender.
 		for(Tuple<String, String> exchange : exchanges)

@@ -15,8 +15,9 @@ public class Common {
 	public static String RMQServer = "";
 	public static String DirectMessageExchange = "DirectExchange";
 	public static String PaxosLeaderExchange = "PaxosLeaderExchange";
-	public static String TCPCoordinatorExchange = "2PCCoordinatorExchange";
-	
+	public static String TPCCoordinatorExchange = "2PCCoordinatorExchange";
+	public static String directExchangeType = "direct";
+	public static String bcastExchangeType = "fanout";
 	public static Integer NoAcceptors = 3;
 	private static Map<String, String> NodeMap = new HashMap<String, String>();
 	public static String InQueueSuffix = "_IN";
@@ -34,9 +35,9 @@ public class Common {
 	public enum SiteCrashMsgType{CRASH,RECOVER};
 	public enum BcastMsgType{COMMIT_ACK,ABORT_ACK};
 	
-	public enum PaxosLeaderState{PREPARE, ACCEPT, COMMIT, COMMIT_ACK, ABORT};
+	public enum PaxosLeaderState{PREPARE, ACCEPT, COMMIT, COMMIT_ACK, ABORT, ABORT_ACK};
 	public enum AcceptorState{ACCEPT, COMMIT, COMMIT_ACK, ABORT, ABORT_ACK};
-	public enum TPCState{INIT, COMMIT, COMMIT_ACK, ABORT};
+	public enum TPCState{INIT, COMMIT, COMMIT_ACK, ABORT, ABORT_ACK};
 	
 	//Static Functions
 	public static <T> String Serialize(T message)
@@ -73,6 +74,11 @@ public class Common {
 	{
 		Class<?> cls = Class.forName(s);
 		return cls;
+	}
+	
+	public static Integer GetQuorumSize()
+	{
+		return (int) (Math.floor(Common.NoAcceptors/2) + 1);
 	}
 	//Instance Functions
 	

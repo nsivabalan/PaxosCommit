@@ -48,5 +48,39 @@ public class PaxosMsg extends MessageBase{
 	public void setType(Common.PaxosMsgType type) {
 		this.type = type;
 	}
+
+	public String getNodeid() {
+		return nodeid;
+	}
+
+	public void setNodeid(String nodeid) {
+		this.nodeid = nodeid;
+	}
+
+	public int getLsn() {
+		return lsn;
+	}
+
+	public void setLsn(int lsn) {
+		this.lsn = lsn;
+	}
+
+	public int getGsn() {
+		return gsn;
+	}
+
+	public void setGsn(int gsn) {
+		this.gsn = gsn;
+	}
+
+	public String getData() {
+		return data;
+	}
+
+	public void setData(String data) {
+		this.data = data;
+	}
+	
+	
 	
 }

@@ -20,7 +20,31 @@ public class TwoPCMsg extends MessageBase{
     	 this.gsn=gsn; 
      }
      
-     //Paxos leader sends msg to TPC with lsn and data
+     public int getLsn() {
+		return lsn;
+	}
+
+	public String getNodeid() {
+		return nodeid;
+	}
+
+	public void setNodeid(String nodeid) {
+		this.nodeid = nodeid;
+	}
+
+	public void setLsn(int lsn) {
+		this.lsn = lsn;
+	}
+
+	public int getGsn() {
+		return gsn;
+	}
+
+	public void setGsn(int gsn) {
+		this.gsn = gsn;
+	}
+
+	//Paxos leader sends msg to TPC with lsn and data
      public TwoPCMsg(String nodeid,Common.TwoPCMsgType type,int lsn,String data)
      {
     	 this.nodeid=nodeid;
