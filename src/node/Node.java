@@ -35,6 +35,7 @@ public class Node {
 		this.requestMap = new HashMap<Integer, Request>();
 		this.requestQueue = new LinkedList<Request>();	
 		
+		//RMQ Receiver 
 		this.inQueue = new RMQReceiver(this.nodeId+Common.InQueueSuffix, false);
 		
 		//Logging Specific

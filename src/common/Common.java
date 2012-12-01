@@ -10,7 +10,10 @@ import com.google.gson.*;
 public class Common {
 	//Static Attributes
 	public static String FilePath = "";
+		//RMQ Attributes
 	public static String RMQServer = "";
+	public static String DirectMessageExchange = "DirectExchange";
+	
 	public static Integer NoAcceptors = 3;
 	private static Map<String, String> NodeMap = new HashMap<String, String>();
 	public static String InQueueSuffix = "_IN";

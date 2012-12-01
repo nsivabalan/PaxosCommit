@@ -9,6 +9,8 @@ import common.RMQSender;
 
 
 public class Acceptor extends Node {
+	private static String Exchange_PaxosLeader;
+	
 	private RMQReceiver bcastQueueReceiver;
 	private RMQSender bcastQueueSender;
 	private RMQSender paxosQueue;

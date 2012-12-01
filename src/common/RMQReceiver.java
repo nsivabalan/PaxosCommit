@@ -43,6 +43,7 @@ public class RMQReceiver {
 			this.channel.basicConsume(this.EXCHANGE_NAME, true, this.consumer);
 	}
 	
+	
 	public MessageWrapper ReceiveMessage() throws IOException, InterruptedException
 	{	
 		QueueingConsumer.Delivery delivery = consumer.nextDelivery();
