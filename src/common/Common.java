@@ -8,8 +8,6 @@ import com.google.gson.*;
 
 
 public class Common {
-	//Static Attributes
-	public static String FilePath = "";
 	
 	//RMQ Attributes
 	public static String RMQServer = "";
@@ -18,14 +16,14 @@ public class Common {
 	public static String TPCCoordinatorExchange = "2PCCoordinatorExchange";
 	public static String directExchangeType = "direct";
 	public static String bcastExchangeType = "fanout";
+	
+	//Configuration Attributes
 	public static Integer NoAcceptors = 3;	
 	public static Integer NoPaxosLeaders = 2;
+	public static String FilePath = "";
+	public static Integer ReadLineCount = 0;
+	
 	private static Map<String, String> NodeMap = new HashMap<String, String>();
-	public static String InQueueSuffix = "_IN";
-	
-	
-	//Instance Attributes
-	
 	
 	//Enums
 	public enum State {ACTIVE, PAUSED};
@@ -35,7 +33,6 @@ public class Common {
 	public enum TwoPCMsgType{COMMIT, ABORT, INFO, ACK};
 	public enum SiteCrashMsgType{CRASH,RECOVER};
 	public enum BcastMsgType{COMMIT_ACK,ABORT_ACK};
-	
 	public enum PaxosLeaderState{PREPARE, ACCEPT, COMMIT, COMMIT_ACK, ABORT, ABORT_ACK};
 	public enum AcceptorState{ACCEPT, COMMIT, COMMIT_ACK, ABORT, ABORT_ACK};
 	public enum TPCState{INIT, COMMIT, COMMIT_ACK, ABORT, ABORT_ACK};

@@ -2,10 +2,17 @@ package node;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import common.Common;
@@ -33,7 +40,9 @@ public class PaxosLeader extends Node{
 		Integer gsn;
 		PaxosLeaderState state;
 		String data;
-
+		String clientRoutingKey;
+		Boolean isCommitAckReceived;
+		
 		Set<String> acceptorListPrepare;
 		Set<String> acceptorListCommit;
 		Set<String> acceptorListAbort;
@@ -46,15 +55,18 @@ public class PaxosLeader extends Node{
 			this.acceptorListCommit =  new HashSet<String>();
 			this.acceptorListAbort =  new HashSet<String>();
 			this.data = data;
+			this.isCommitAckReceived = false;
 		}		
 	}
 
-	private static String tpcCoordinatorId;
+	private String tpcCoordinatorId;
 	private String paxosLeaderExchange;
 	private String tpcCoordinatorExchance;
-
+	
+	private int readLineNumber;
 	private Map<UUID, TransactionStatus> uidTransactionStatusMap;
-
+	private SortedSet<Map.Entry<UUID, TransactionStatus>> uidCommitAckStatusSet;
+	
 	public PaxosLeader(String nodeId, String fileName, String tpcCoordinatorId) throws IOException {		
 		super(nodeId, fileName);
 
@@ -70,17 +82,27 @@ public class PaxosLeader extends Node{
 		this.DeclareExchanges(exchanges);
 		this.InitializeConsumer();
 
-
+		this.readLineNumber = Common.ReadLineCount;
 		this.uidTransactionStatusMap = new HashMap<UUID, TransactionStatus>();
+		
+		this.uidCommitAckStatusSet = new TreeSet<Map.Entry<UUID, TransactionStatus>>(
+				new Comparator<Map.Entry<UUID, TransactionStatus>>() {
+					@Override
+					public int compare(Map.Entry<UUID, TransactionStatus> e1, 
+							Map.Entry<UUID, TransactionStatus> e2)
+					{
+						return e1.getValue().gsn.compareTo(e2.getValue().gsn);
+					}
+				});
 	}
 
 
 	public void run() throws IOException, InterruptedException, ClassNotFoundException{
 
 		while (true) {
+			
 			MessageWrapper msgwrap =  messageController.ReceiveMessage();    
 			if (msgwrap != null ) {
-
 
 				if(msgwrap.getmessageclass() == ClientOpMsg.class && this.NodeState == State.ACTIVE)
 				{
@@ -109,6 +131,8 @@ public class PaxosLeader extends Node{
 
 					if (msg.getType() == TwoPCMsgType.COMMIT)
 						ProcessCommitRequest(msg.getUID(), msg.getGsn());
+					else if (msg.getType() == TwoPCMsgType.ACK)
+						ProcessCommitAckRequestFromTPC(msg.getUID());
 					else 
 						ProcessAbortRequest(msg.getUID());
 				}
@@ -134,24 +158,55 @@ public class PaxosLeader extends Node{
 		}		
 	}
 
+	public void ProcessCommitAckRequestFromTPC(UUID uid)
+	{
+		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
+		temp.isCommitAckReceived = true;
+		this.uidTransactionStatusMap.put(uid, temp);
+		
+		this.uidCommitAckStatusSet.addAll(this.uidTransactionStatusMap.entrySet());
+		
+		while(true)
+		{
+			Entry<UUID, TransactionStatus> e =  this.uidCommitAckStatusSet.first();
+			if(e.getValue().gsn == -1 )
+				this.uidCommitAckStatusSet.remove(e);
+			
+			else if (e.getValue().isCommitAckReceived)
+			{
+				this.readLineNumber += 1;
+				this.uidCommitAckStatusSet.remove(e);
+			}
+			else 
+			{
+				break;
+			}
+		}
+		
+	}
+	
 	//method used to process client msg
 	public void ProcessClientMessageData(ClientOpMsg msg) throws IOException
 	{
 		if(msg.getType()==Common.ClientOPMsgType.APPEND)
 		{			
 			UUID uid = msg.getUid();
-			this.ProcessAppendRequest(uid, msg.getData());
+			String clientRoutingKey = msg.getNodeid();
+			
+			this.ProcessAppendRequest(uid, msg.getData(), clientRoutingKey);
 		}
 		else
 		{
 			//TODO: Respond with read of file.
+			this.localResource.ReadResource(this.readLineNumber);
 		}		
 	}
 
 	//Process New Append Request from Client
-	public void ProcessAppendRequest(UUID uid, String data) throws IOException 
+	public void ProcessAppendRequest(UUID uid, String data, String clientRoutingKey) throws IOException 
 	{
 		TransactionStatus temp=new TransactionStatus(data);
+		temp.clientRoutingKey = clientRoutingKey;
 		this.uidTransactionStatusMap.put(uid, temp);
 
 		PaxosMsg paxosMsg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACCEPT, uid, data);
@@ -173,14 +228,14 @@ public class PaxosLeader extends Node{
 	}
 
 
-	// Update LSN after receiving commit response from 2PC.
+	// Update GSN after receiving commit response from 2PC.
 	public void ProcessCommitRequest(UUID uid, int gsn) throws IOException
 	{
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
 		temp.gsn = gsn;
 		temp.state = Common.PaxosLeaderState.COMMIT;
 		this.uidTransactionStatusMap.put(uid, temp);
-
+		
 		//propagate info to all acceptors
 		PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.COMMIT, uid, gsn);
 		SendPaxosMsg(msg);
@@ -213,7 +268,9 @@ public class PaxosLeader extends Node{
 		if (temp.acceptorListPrepare.size() >= Common.GetQuorumSize() && temp.state == PaxosLeaderState.PREPARE) 
 		{
 			temp.state = Common.PaxosLeaderState.ACCEPT;
+			
 			TwoPCMsg msg = new TwoPCMsg(this.nodeId, TwoPCMsgType.INFO, -1);
+			msg.setClientRoutingKey(temp.clientRoutingKey);
 			this.SendTPCMsg(msg);
 		}
 		else

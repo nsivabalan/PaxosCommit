@@ -1,7 +1,13 @@
 package common;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.PrintWriter;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -9,50 +15,50 @@ import java.nio.charset.Charset;
 public class Resource {
 	private String fileName;
 	private File file;
+	private FileReader fileReader;
+	private PrintWriter fileWriter;
 
-	public Resource(String fileName, String path)
+	public Resource(String fileName, String path) throws IOException
 	{
 		this.fileName = fileName;
-		this.file = new File(path);
+		this.file = new File(path+fileName);
+		this.fileReader = new FileReader(this.file);
+		
 	}
 
 	//Read contents of a file.
-	public String ReadResource() throws IOException
+	public String ReadResource(int readLineNumber) throws IOException
 	{
-		FileInputStream stream = new FileInputStream(this.file);
+		StringBuilder data = new StringBuilder();
+		LineNumberReader lnr = null;
+
 		try {
-			FileChannel fc = stream.getChannel();
-			MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
-			/* Instead of using default, pass in a decoder. */
-			return Charset.defaultCharset().decode(bb).toString();
+			lnr = new LineNumberReader(this.fileReader);
+			String line = lnr.readLine();  
+
+			while (line != null && lnr.getLineNumber() <= readLineNumber ) {   
+				data.append(line);
+				line = lnr.readLine();  
+			}
 		}
 		finally {
-			stream.close();
+			lnr.close();
 		}
-
+		return data.toString();
 	}
 	
-	//Acquire Shared Lock
-	public void AcquireSharedLock()
+	//Write contents to a file.
+	public void AppendtoResource(String data)
 	{
-		//TODO : Implement function.
-	}
-	
-	//Release Shared Locks
-	public void ReleaseSharedLock()
-	{
-		//TODO : Implement function
-	}
-	
-	//Acquire Exclusive Lock
-	public void AcquireExclusiveLock()
-	{
-		//TODO : Implement function
-	}
-	
-	//Release Exclusive Lock
-	public void ReleaseExclusiveLock()
-	{
-		//TODO : Implement Function
+		try 
+		{
+			fileWriter = new PrintWriter(new BufferedWriter(new FileWriter(this.file, true)));
+		    fileWriter.println(data);
+		    fileWriter.close();
+		
+		} catch (IOException e) {
+			e.printStackTrace();
+		    //TODO : Add to log.			
+		}
 	}
 }

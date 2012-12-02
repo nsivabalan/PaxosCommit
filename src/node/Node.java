@@ -18,11 +18,11 @@ import common.Tuple;
 
 public class Node {
 	protected String nodeId;
-	private Resource localResource;
+	protected Resource localResource;
 
 	protected MessageController messageController;
 	protected Common.State NodeState;
-	private final static Logger LOGGER = Logger.getLogger(Node.class.getName());
+	protected final static Logger LOGGER = Logger.getLogger(Node.class.getName());
 	private static FileHandler logFile;
 
 
