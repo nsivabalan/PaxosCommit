@@ -19,7 +19,7 @@ public class Common {
 	public static String directExchangeType = "direct";
 	public static String bcastExchangeType = "fanout";
 	public static Integer NoAcceptors = 3;	
-	public static Integer NoPaxosLeaders = 3;
+	public static Integer NoPaxosLeaders = 2;
 	private static Map<String, String> NodeMap = new HashMap<String, String>();
 	public static String InQueueSuffix = "_IN";
 	
@@ -32,7 +32,7 @@ public class Common {
 	public enum RequestType {PREPARE, COMMIT, ABORT};
 	public enum ClientOPMsgType{READ,APPEND,READ_RESPONSE,APPEND_RESPONSE,ABORT};
 	public enum PaxosMsgType{ACCEPT,ACK,COMMIT,ABORT};
-	public enum TwoPCMsgType{COMMIT,ABORT,INFO};
+	public enum TwoPCMsgType{COMMIT, ABORT, INFO, ACK};
 	public enum SiteCrashMsgType{CRASH,RECOVER};
 	public enum BcastMsgType{COMMIT_ACK,ABORT_ACK};
 	

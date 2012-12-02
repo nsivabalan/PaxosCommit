@@ -21,7 +21,7 @@ public class Node {
 	private Resource localResource;
 
 	protected MessageController messageController;
-	
+	protected Common.State NodeState;
 	private final static Logger LOGGER = Logger.getLogger(Node.class.getName());
 	private static FileHandler logFile;
 
@@ -30,6 +30,8 @@ public class Node {
 	public Node(String nodeId, String fileName) throws IOException
 	{
 		this.nodeId = nodeId;
+		this.NodeState = Common.State.ACTIVE;
+		
 		//Bind the resource
 		this.localResource = new Resource(fileName, Common.FilePath);
 

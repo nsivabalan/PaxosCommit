@@ -42,10 +42,18 @@ public class MessageController {
 	//Receive a new Message from the RMQ Server queue for node
 	public MessageWrapper ReceiveMessage() throws IOException, InterruptedException
 	{
-		QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-		String msg = new String(delivery.getBody());
-		System.out.println("Received Message" + msg);
-		return MessageWrapper.getDeSerializedMessage(msg);
+		//nextDelivery(long milliseconds) --> timeout interval for blocking receiving from queue.
+		MessageWrapper wrapper = null;
+		
+		QueueingConsumer.Delivery delivery = consumer.nextDelivery(500);
+		if(delivery != null)
+		{
+			String msg = new String(delivery.getBody());
+			System.out.println("Received Message" + msg);
+			wrapper = MessageWrapper.getDeSerializedMessage(msg); 
+		}
+		
+		return wrapper;
 	}
 	
 	//Send message to the queue.

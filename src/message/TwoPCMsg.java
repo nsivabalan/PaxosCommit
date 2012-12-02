@@ -11,6 +11,28 @@ public class TwoPCMsg extends MessageBase{
 	private Common.TwoPCMsgType type;
 	private int gsn;
 	private String data; // represents the value
+	private int readLineNumber;
+	private String clientRoutingKey;
+
+	public String getClientRoutingKey() {
+		return clientRoutingKey;
+	}
+
+
+	public void setClientRoutingKey(String clientRoutingKey) {
+		this.clientRoutingKey = clientRoutingKey;
+	}
+
+
+	public int getReadLineNumber() {
+		return readLineNumber;
+	}
+
+
+	public void setReadLineNumber(int readLineNumber) {
+		this.readLineNumber = readLineNumber;
+	}
+
 
 	//TPC responds to Paxos leaders with gsn
 	public TwoPCMsg(String nodeid,Common.TwoPCMsgType type,UUID uid, int gsn)
@@ -21,7 +43,14 @@ public class TwoPCMsg extends MessageBase{
 		this.gsn=gsn; 
 	}
 
-
+	public TwoPCMsg(String nodeId, UUID uid, int readLineNumber)
+	{
+		this.nodeid=nodeId;		
+		this.type= common.Common.TwoPCMsgType.ACK;
+		this.uid=uid;
+		this.readLineNumber = readLineNumber;
+	}
+	
 	//Paxos leader sends msg to TPC with uid and data
 	public TwoPCMsg(String nodeid,Common.TwoPCMsgType type,UUID uid,String data)
 	{
@@ -41,7 +70,7 @@ public class TwoPCMsg extends MessageBase{
 		this.gsn=gsn; 
 	}
 
-	public UUID getuid() {
+	public UUID getUID() {
 		return this.uid;
 	}
 
@@ -53,7 +82,7 @@ public class TwoPCMsg extends MessageBase{
 		this.nodeid = nodeid;
 	}
 
-	public void setuid(UUID uid) {
+	public void setUID(UUID uid) {
 		this.uid = uid;
 	}
 

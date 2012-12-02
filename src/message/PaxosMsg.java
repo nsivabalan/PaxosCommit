@@ -13,8 +13,8 @@ public class PaxosMsg extends MessageBase{
 	private int gsn;
 	private String data; 	
 	
-	//to send data to all acceptors for first time
-	public PaxosMsg(String nodeid,Common.PaxosMsgType type,UUID uid,String data)
+	//FOR INFO MSG.
+	public PaxosMsg(String nodeid,Common.PaxosMsgType type, UUID uid, String data)
 	{
 		this.nodeid=nodeid;
 		this.type=type;
@@ -22,7 +22,7 @@ public class PaxosMsg extends MessageBase{
 		this.data=data;
 	}
 	
-	//to send accept msgs to acceptors after getting gsn from TPC
+	//FOR COMMIT
 	public PaxosMsg(String nodeid,Common.PaxosMsgType type,UUID uid, int gsn)
 	{
 		this.nodeid=nodeid;
@@ -31,12 +31,12 @@ public class PaxosMsg extends MessageBase{
 		this.gsn=gsn;
 	}	
 	
-	//send commit/abort msg to acceptors after getting response from TPC
-	public PaxosMsg(String nodeid,Common.PaxosMsgType type,int gsn)
+	//FOR ABORT
+	public PaxosMsg(String nodeid,Common.PaxosMsgType type, UUID uid)
 	{
 		this.nodeid=nodeid;
 		this.type=type;		
-		this.gsn=gsn;
+		this.uid = uid;
 	}
 	
     // when PL doesnt get response from TPC, what do we do?
@@ -58,11 +58,11 @@ public class PaxosMsg extends MessageBase{
 		this.nodeid = nodeid;
 	}
 
-	public UUID getuid() {
+	public UUID getUID() {
 		return this.uid;
 	}
 
-	public void setuid(UUID uid) {
+	public void setUID(UUID uid) {
 		this.uid = uid;
 	}
 

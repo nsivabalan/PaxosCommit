@@ -13,14 +13,17 @@ public class Receiver {
 		// TODO Auto-generated method stub
 		Common.RMQServer = "localhost";		
 		
-		try {
-			String[] exchanges = {"test_direct"};
+		try {	
+			String exchange = "test_direct";
 			String nodeId = args[1];
-			RMQReceiver receiver = new RMQReceiver(exchanges, nodeId);
+			MessageController controller = new MessageController(nodeId);
+			controller.DeclareExchange(exchange, "direct");
+			controller.InitializeConsumer();
 			
 			while(true)
 			{	
-				MessageWrapper rMessage = receiver.ReceiveMessage();			
+				MessageWrapper rMessage = controller.ReceiveMessage();
+				System.out.println("test");
 			}
 			
 		} catch (IOException e) {

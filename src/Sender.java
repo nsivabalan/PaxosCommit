@@ -16,7 +16,7 @@ public class Sender {
 		
 		try {
 			String exchange = "test_direct";
-			MessageController sender = new MessageController();
+			MessageController sender = new MessageController("sender");
 			sender.DeclareExchange(exchange, "direct");
 			
 			int i = 30;
@@ -24,7 +24,7 @@ public class Sender {
 			{
 				MessageWrapper message = new MessageWrapper("HelloWorld "+i, MessageWrapper.class);
 				System.out.println("Send");
-				sender.SendMessage(message, exchange, "node3");
+				sender.SendMessage(message, exchange, "node1");
 				i++;
 			}
 			

@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
@@ -13,40 +16,50 @@ import java.sql.Timestamp;
 import common.Common;
 import common.Common.ClientOPMsgType;
 import common.Tuple;
+import common.Common.SiteCrashMsgType;
 import common.Common.TPCState;
 import common.Common.TwoPCMsgType;
 import common.MessageWrapper;
 import message.ClientOpMsg;
+import message.SiteCrashMsg;
 import message.TwoPCMsg;
+import common.Common.State;
 
 
 public class TPCCoordinator extends Node {
 
-	final class TwoPhaseCommitStatus {
+	final class TransactionStatus {
 		Integer gsn;
 		TPCState state;
-		Map<String,Integer> nodeidtoLsnMap;
-		Map<String,Integer> nodeidtoLsnCommitackMap;
-		Map<String,Integer> nodeidtoLsnAbortackMap;
+		String clientRoutingKey;
+
+		Set<String> paxosLeaderListPrepare;
+		Set<String> paxosLeaderListCommit;
+		Set<String> paxosLeaderListAbort;
+
 		Timestamp tmstamp_init;
 		Timestamp tmstamp_final;
-		
-		public TwoPhaseCommitStatus(int lsn)
+
+		public TransactionStatus(String clientRoutingKey)
 		{
 			this.gsn = -1;
 			this.state = TPCState.INIT;
-			this.tmstamp_init=new Timestamp(new Date().getTime());
-			this.nodeidtoLsnMap = new HashMap<String,Integer>();	
-			this.nodeidtoLsnCommitackMap =  new HashMap<String,Integer>();	
-			this.nodeidtoLsnAbortackMap =  new HashMap<String,Integer>();	
+			this.clientRoutingKey = clientRoutingKey;
+			this.tmstamp_init = new Timestamp(new Date().getTime());
+			this.tmstamp_final = new Timestamp(new Date().getTime());
+
+			this.paxosLeaderListPrepare = new HashSet<String>();	
+			this.paxosLeaderListCommit =  new HashSet<String>();
+			this.paxosLeaderListAbort =  new HashSet<String>();	
 		}
 	}
 
-	
-	private String TwoPCExchange;
-	private Map<String, String> resourcePaxosLeaderMap;
-	private MultiKeyMap datagsntoTwoPhaseStatus;
 
+	private String TwoPCExchange;
+	private static int currentReadLineNumber = 0;
+
+	private Map<String, String> resourcePaxosLeaderMap;
+	private Map<UUID, TransactionStatus> uidTransactionStatusMap;
 	private static int gsnCounter = 0;
 
 	public TPCCoordinator(String nodeId, String fileName,String bcastTPCQueueName) throws IOException {
@@ -55,17 +68,17 @@ public class TPCCoordinator extends Node {
 
 		//Initialize the Message Coordinator Exchanges.
 		this.TwoPCExchange = Common.TPCCoordinatorExchange + this.nodeId;
-		
+
 		ArrayList<Tuple<String, String>> exchanges = new ArrayList<Tuple<String, String>>();
 		exchanges.add(new Tuple(Common.DirectMessageExchange, Common.directExchangeType));
 		exchanges.add(new Tuple(this.TwoPCExchange, Common.bcastExchangeType));
-		
+
 		this.DeclareExchanges(exchanges);
 		this.InitializeConsumer();
-		
+
 		//Initialize the Local data structures.
 		this.resourcePaxosLeaderMap = new HashMap<String, String>();
-		this.datagsntoTwoPhaseStatus = MultiKeyMap.decorate(new LinkedMap(1000));
+		this.uidTransactionStatusMap = new HashMap<UUID, TPCCoordinator.TransactionStatus>();
 	}
 
 	public void AddResourcePaxosLeaderMapping(String paxosLeaderId, String resourceName){
@@ -77,123 +90,124 @@ public class TPCCoordinator extends Node {
 
 		while (true) {
 			MessageWrapper msgwrap= messageController.ReceiveMessage();    
+			if (msgwrap != null )
+			{				
 
-			if(msgwrap.getmessageclass() == TwoPCMsg.class)
-			{
-				TwoPCMsg msg = (TwoPCMsg) msgwrap.getDeSerializedInnerMessage();
-				if (msg.getType() == TwoPCMsgType.INFO)
-					ProcessInfoRequest(msg.getLsn(), msg.getData(), msg.getNodeid());
-				else if (msg.getType() == TwoPCMsgType.COMMIT)
-					ProcessCommitAck(msg.getGsn(), msg.getNodeid());
-				else if (msg.getType() == TwoPCMsgType.ABORT)
-					ProcessAbortAck(msg.getLsn(), msg.getNodeid(),msg.getData());
+				if(msgwrap.getmessageclass() == TwoPCMsg.class && this.NodeState == State.ACTIVE)
+				{
+					TwoPCMsg msg = (TwoPCMsg) msgwrap.getDeSerializedInnerMessage();
+
+					if (msg.getType() == TwoPCMsgType.INFO)
+						ProcessInfoRequest(msg.getUID(), msg.getNodeid(), msg.getClientRoutingKey());
+
+					else if (msg.getType() == TwoPCMsgType.COMMIT)
+						ProcessCommitAck(msg.getUID(), msg.getNodeid());
+
+					else if (msg.getType() == TwoPCMsgType.ABORT)
+						ProcessAbortAck(msg.getUID(), msg.getNodeid());
+
+				}
+				else if (msgwrap.getmessageclass() == SiteCrashMsg.class)
+				{
+					SiteCrashMsg msg = (SiteCrashMsg) msgwrap.getDeSerializedInnerMessage();
+					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
+					{
+						this.NodeState = State.PAUSED;
+					}
+					else if(msg.getType() == SiteCrashMsgType.RECOVER && this.NodeState == State.PAUSED)
+					{
+						this.NodeState = State.ACTIVE;
+					}					
+				}
+				else
+				{
+					// Discarded Message.
+				}
 			}
+
+			// TODO Check for timeouts.
 		}		
 	}
 
 
 	//method used to process New data from the client (forwarded by paxos leader after getting the majority
-	public void ProcessInfoRequest(int lsn,String data,String nodeid) throws IOException
+	public void ProcessInfoRequest(UUID uid, String nodeid, String clientRoutingKey) throws IOException
 	{
-		if(datagsntoTwoPhaseStatus.get(data)!=null)
+		if(this.uidTransactionStatusMap.containsKey(uid))
 		{
-			TwoPhaseCommitStatus temp=(TwoPhaseCommitStatus) datagsntoTwoPhaseStatus.get(data);
-			
-			if(!(temp.nodeidtoLsnMap.containsKey(nodeid)))
+			TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
+			temp.paxosLeaderListPrepare.add(nodeid);
+			if (temp.paxosLeaderListPrepare.size() == Common.NoPaxosLeaders)
 			{
-				temp.nodeidtoLsnMap.put(nodeid, lsn);						
-				if (temp.nodeidtoLsnMap.size() == Common.NoPaxosLeaders && temp.state == TPCState.INIT) 
-				{					
-					temp.state=TPCState.COMMIT;
-					int gsn=this.getNewGSN();
-					temp.gsn=gsn;
-					datagsntoTwoPhaseStatus.put(data, temp);
-					TwoPhaseCommitStatus cur_stat=(TwoPhaseCommitStatus) datagsntoTwoPhaseStatus.get(gsn);
-					Map<String,Integer> tempmap=cur_stat.nodeidtoLsnMap;
-					ArrayList<Integer> lsnvalues= (ArrayList<Integer>) tempmap.values();
-					for(int i=0;i<lsnvalues.size();i++)
-					{
-						this.SendCommitMessage(lsnvalues.get(i),gsn);
-					}			
-				}
-				else
-				{
-					datagsntoTwoPhaseStatus.put(data, temp);	
-				}
-			
-			}	
+				temp.state = TPCState.COMMIT;
+				int gsn = this.getNewGSN();
+				temp.gsn = gsn;
+				this.uidTransactionStatusMap.put(uid, temp);
+
+				SendCommitMessage(uid);
+			}
+			else 
+			{
+				this.uidTransactionStatusMap.put(uid, temp);
+			}
 		}
 		else
 		{
-			TwoPhaseCommitStatus temp=new TwoPhaseCommitStatus(lsn);
-			datagsntoTwoPhaseStatus.put(data,temp);
+			TransactionStatus temp = new TransactionStatus(clientRoutingKey);
+			this.uidTransactionStatusMap.put(uid, temp);
 		}
 
 	}
 
 	//method used to process commit acknowlegement either of paxos leader
-	public void ProcessCommitAck(int gsn,String nodeid)
+	public void ProcessCommitAck(UUID uid, String nodeid) throws IOException
 	{
-		
-			TwoPhaseCommitStatus temp=(TwoPhaseCommitStatus) datagsntoTwoPhaseStatus.get(gsn);
-			if(!(temp.nodeidtoLsnCommitackMap.containsKey(nodeid))){
-				temp.nodeidtoLsnCommitackMap.put(nodeid, gsn);			
-			if((temp.nodeidtoLsnCommitackMap.size()==Common.NoPaxosLeaders) && temp.state== TPCState.COMMIT){					
-					temp.state=TPCState.COMMIT_ACK;	
-					datagsntoTwoPhaseStatus.put(gsn, temp);
-					SendClientCommitResponse("append","done with append");
-					//fix this
-			}
-			else{
-				temp.tmstamp_final=new Timestamp(new Date().getTime());
-				datagsntoTwoPhaseStatus.put(gsn, temp);	
-			}
-			}
-		
+		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
+		temp.paxosLeaderListCommit.add(nodeid);
+
+		if (temp.paxosLeaderListCommit.size() == 1)
+		{	
+			ClientOpMsg msg = new ClientOpMsg(nodeid, ClientOPMsgType.APPEND_RESPONSE, "Committed", uid);
+			SendClientMessage(msg, temp.clientRoutingKey);
+		}
+		else if (temp.paxosLeaderListCommit.size() == Common.NoPaxosLeaders) 
+		{
+			temp.state = TPCState.COMMIT_ACK;
+			this.uidTransactionStatusMap.put(uid, temp);
+			//TODO: Update/Send Readline number to paxos leader.
+			TwoPCMsg msg = new TwoPCMsg(this.nodeId, uid, GetReadlineNumber());
+			SendTPCMessage(msg);
+		}
 	}
 
+
+
 	//method used to process the abort acknowledgement msg from either of paxos leader
-	public void ProcessAbortAck(int lsn, String nodeid,String data)
+	public void ProcessAbortAck(UUID uid, String nodeid) throws IOException
 	{
-		TwoPhaseCommitStatus temp=(TwoPhaseCommitStatus) datagsntoTwoPhaseStatus.get(data);
-		
-		if(!(temp.nodeidtoLsnAbortackMap.containsKey(nodeid))){
-			temp.nodeidtoLsnAbortackMap.put(nodeid, lsn);
-		if((temp.nodeidtoLsnAbortackMap.size()==Common.NoPaxosLeaders) && temp.state== TPCState.ABORT){					
-				temp.state=TPCState.ABORT_ACK;
-				datagsntoTwoPhaseStatus.put(data, temp);
-				SendClientAbortResponse(data);			
+		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
+		temp.paxosLeaderListCommit.add(nodeid);
+
+		if (temp.paxosLeaderListCommit.size() == 1)
+		{	
+			ClientOpMsg msg = new ClientOpMsg(nodeid, ClientOPMsgType.APPEND_RESPONSE, "Aborted", uid);
+			SendClientMessage(msg, temp.clientRoutingKey);
 		}
-		else{
-			temp.tmstamp_final=new Timestamp(new Date().getTime());
-			datagsntoTwoPhaseStatus.put(data, temp);		
+		else if (temp.paxosLeaderListCommit.size() == Common.NoPaxosLeaders) 
+		{
+			temp.state = TPCState.ABORT_ACK;
+			this.uidTransactionStatusMap.put(uid, temp);
 		}
-		}
-		
 	}
-	
-	public void SendClientCommitResponse(String response,String data)
-	{
-		ClientOpMsg msg;
-		if(response.equals("read"))
-		msg=new ClientOpMsg(this.nodeId, ClientOPMsgType.READ_RESPONSE, data);
-		if(response.equals("append"))
-		msg=new ClientOpMsg(this.nodeId, ClientOPMsgType.APPEND_RESPONSE, data);
-		
-	}	
-	
-	public void SendClientAbortResponse(String data)
-	{
-		ClientOpMsg msg=new ClientOpMsg(this.nodeId, ClientOPMsgType.ABORT, data);
-	}
-	
-	public void SendClientMessage(ClientOpMsg msg) throws IOException
+
+
+	public void SendClientMessage(ClientOpMsg msg, String routingKey) throws IOException
 	{
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
-		this.messageController.SendMessage(msgwrap, Common.DirectMessageExchange, "");
-		//fix this
+		this.messageController.SendMessage(msgwrap, Common.DirectMessageExchange, routingKey);
+
 	}
-	
+
 	//if TPC doesnt receive info msg from both paxos leaders, it sends a abort msg paxos leader who has just sent the data
 	// or just the data(is there a need for lsn? if no, we can inform both the paxos leaders
 	//we just know the lsn from only one PL
@@ -205,20 +219,27 @@ public class TPCCoordinator extends Node {
 
 	//method used to send commit msg after receiving info msg from both the paxos leaders
 	//call this method for each PL with diff lsn values
-	public void SendCommitMessage(int lsn,int gsn) throws IOException
+	public void SendCommitMessage(UUID uid) throws IOException
 	{
-		TwoPCMsg commitmsg = new TwoPCMsg(this.nodeId, Common.TwoPCMsgType.COMMIT, lsn,gsn);
+		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);		
+		TwoPCMsg commitmsg = new TwoPCMsg(this.nodeId, Common.TwoPCMsgType.COMMIT, uid, temp.gsn);
+
 		SendTPCMessage(commitmsg);
 	}
-	
+
 
 	public void SendTPCMessage(TwoPCMsg msg) throws IOException
 	{
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.TwoPCExchange, "");
 	}
-	
 
+
+	public int GetReadlineNumber()
+	{
+		currentReadLineNumber += 1;
+		return currentReadLineNumber;
+	}
 
 	private static int getNewGSN(){
 		return gsnCounter++;
