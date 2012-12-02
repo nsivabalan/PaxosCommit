@@ -1,4 +1,6 @@
 package message;
+import java.util.UUID;
+
 import common.Common;
 /*
  * This class is used to model the messages dealing with paxos, like the accept msg, acknowledge msg and commit or abort msg which 
@@ -8,25 +10,24 @@ import common.Common;
 public class PaxosMsg extends MessageBase{
 	private String nodeid;
 	private Common.PaxosMsgType type;
-	private int lsn; 
 	private int gsn;
 	private String data; 	
 	
 	//to send data to all acceptors for first time
-	public PaxosMsg(String nodeid,Common.PaxosMsgType type,int lsn,String data)
+	public PaxosMsg(String nodeid,Common.PaxosMsgType type,UUID uid,String data)
 	{
 		this.nodeid=nodeid;
 		this.type=type;
-		this.lsn=lsn;
+		this.uid=uid;
 		this.data=data;
 	}
 	
 	//to send accept msgs to acceptors after getting gsn from TPC
-	public PaxosMsg(String nodeid,Common.PaxosMsgType type,int lsn, int gsn)
+	public PaxosMsg(String nodeid,Common.PaxosMsgType type,UUID uid, int gsn)
 	{
 		this.nodeid=nodeid;
 		this.type=type;
-		this.lsn=lsn;
+		this.uid=uid;
 		this.gsn=gsn;
 	}	
 	
@@ -39,7 +40,7 @@ public class PaxosMsg extends MessageBase{
 	}
 	
     // when PL doesnt get response from TPC, what do we do?
-	//retry or send abort msg to acceptors, if so, what is de format of the msg?(PaxosMsgType,lsn)
+	//retry or send abort msg to acceptors, if so, what is de format of the msg?(PaxosMsgType,uid)
 	
 	public Common.PaxosMsgType getType() {
 		return type;
@@ -57,12 +58,12 @@ public class PaxosMsg extends MessageBase{
 		this.nodeid = nodeid;
 	}
 
-	public int getLsn() {
-		return lsn;
+	public UUID getuid() {
+		return this.uid;
 	}
 
-	public void setLsn(int lsn) {
-		this.lsn = lsn;
+	public void setuid(UUID uid) {
+		this.uid = uid;
 	}
 
 	public int getGsn() {

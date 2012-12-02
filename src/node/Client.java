@@ -32,7 +32,7 @@ public class Client extends Node implements Runnable{
 		clientobj.ProcessInput();
 	}
 
-	public void ProcessInput() throws IOException
+	public void ProcessInput() throws IOException, InterruptedException
 	{
 		String requesttype,request;
 		int destid;
@@ -57,6 +57,7 @@ public class Client extends Node implements Runnable{
 				this.sendClientOpMsg(msg, this.paxosLeaderOneId);
 			}
 
+		Thread.sleep(60000);
 		}
 	}
 
