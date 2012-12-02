@@ -59,6 +59,14 @@ public class TwoPCMsg extends MessageBase{
 		this.uid=uid;
 		this.data=data;
 	}
+	
+	//Paxos leader sends abort msg to TPC with uid 
+	public TwoPCMsg(String nodeid,Common.TwoPCMsgType type,UUID uid)
+	{
+		this.nodeid=nodeid;
+		this.type=type;
+		this.uid=uid;
+	}
 
 	//TPC sends abort or commit msg to both PL in 2nd phase
 	//it can be uid also in first phase?

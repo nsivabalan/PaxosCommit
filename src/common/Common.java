@@ -1,4 +1,6 @@
 package common;
+import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,6 +22,8 @@ public class Common {
 	public static String bcastExchangeType = "fanout";
 	public static Integer NoAcceptors = 3;	
 	public static Integer NoPaxosLeaders = 2;
+	public static Integer init_timeout=2;
+	public static Integer commitabort_timeout=5;
 	private static Map<String, String> NodeMap = new HashMap<String, String>();
 	public static String InQueueSuffix = "_IN";
 	
@@ -80,6 +84,15 @@ public class Common {
 	public static Integer GetQuorumSize()
 	{
 		return (int) (Math.floor(Common.NoAcceptors/2) + 1);
+	}
+	
+	public static Timestamp getUpdatedTimestamp(Timestamp original, int sec){
+		
+		Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(original.getTime());
+        cal.add(Calendar.SECOND, sec);
+        Timestamp later = new Timestamp(cal.getTime().getTime());
+        return later;
 	}
 	//Instance Functions
 	

@@ -42,19 +42,22 @@ public class Client extends Node implements Runnable{
 			Scanner in = new Scanner(System.in);			 
 			System.out.println("Enter a reqeust type (read/append) ");
 			requesttype = in.nextLine();
-			System.out.println("Enter an data ");
-			request = in.nextLine();
-			System.out.println("Enter an dest id(1 or 2 ");
-			destid = in.nextInt();
 			
 			if(requesttype.equals("read")){
-				msg= new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.READ, (destid==0)?this.paxosLeaderOneId:this.paxosLeaderTwoId);
-				this.sendClientOpMsg(msg, this.paxosLeaderOneId);
+				System.out.println("Enter a dest id(1 or 2) ");
+				destid = in.nextInt();
+				
+				msg= new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.READ, (destid==1)?this.paxosLeaderOneId:this.paxosLeaderTwoId,java.util.UUID.randomUUID());
+				this.sendClientOpMsg(msg, (destid==1)?this.paxosLeaderOneId:this.paxosLeaderTwoId);
 			}
-			else if (request.equals("append")){
-				msg = new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.APPEND, (destid==0)?this.paxosLeaderOneId:this.paxosLeaderTwoId);
+			else if (requesttype.equals("append")){
+				System.out.println("Enter data ");
+				request = in.nextLine();				
+				msg = new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.APPEND, paxosLeaderOneId,java.util.UUID.randomUUID());
 				msg.setData(request);
 				this.sendClientOpMsg(msg, this.paxosLeaderOneId);
+				msg.setNodeid(paxosLeaderTwoId);
+				this.sendClientOpMsg(msg, this.paxosLeaderTwoId);
 			}
 
 		Thread.sleep(60000);
@@ -63,7 +66,6 @@ public class Client extends Node implements Runnable{
 
 	public void sendClientOpMsg(ClientOpMsg msg,String destid) throws IOException
 	{
-
 		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);
 	}
 
