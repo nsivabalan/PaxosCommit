@@ -6,17 +6,19 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import message.ClientOpMsg;
-import message.TwoPCMsg;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import java.sql.Timestamp;
+
 import common.Common;
 import common.Common.ClientOPMsgType;
 import common.Tuple;
 import common.Common.TPCState;
 import common.Common.TwoPCMsgType;
 import common.MessageWrapper;
+import message.ClientOpMsg;
+import message.TwoPCMsg;
+
 
 public class TPCCoordinator extends Node {
 
@@ -51,16 +53,19 @@ public class TPCCoordinator extends Node {
 		//TPCCoordinator does not handle any resource.
 		super(nodeId, "");
 
+		//Initialize the Message Coordinator Exchanges.
 		this.TwoPCExchange = Common.TPCCoordinatorExchange + this.nodeId;
+		
 		ArrayList<Tuple<String, String>> exchanges = new ArrayList<Tuple<String, String>>();
 		exchanges.add(new Tuple(Common.DirectMessageExchange, Common.directExchangeType));
 		exchanges.add(new Tuple(this.TwoPCExchange, Common.bcastExchangeType));
+		
 		this.DeclareExchanges(exchanges);
 		this.InitializeConsumer();
 		
+		//Initialize the Local data structures.
 		this.resourcePaxosLeaderMap = new HashMap<String, String>();
-		datagsntoTwoPhaseStatus = MultiKeyMap.decorate(new LinkedMap(1000));
-
+		this.datagsntoTwoPhaseStatus = MultiKeyMap.decorate(new LinkedMap(1000));
 	}
 
 	public void AddResourcePaxosLeaderMapping(String paxosLeaderId, String resourceName){
@@ -92,7 +97,8 @@ public class TPCCoordinator extends Node {
 	{
 		if(datagsntoTwoPhaseStatus.get(data)!=null)
 		{
-			TwoPhaseCommitStatus temp=(TwoPhaseCommitStatus) datagsntoTwoPhaseStatus.get(data);			
+			TwoPhaseCommitStatus temp=(TwoPhaseCommitStatus) datagsntoTwoPhaseStatus.get(data);
+			
 			if(!(temp.nodeidtoLsnMap.containsKey(nodeid)))
 			{
 				temp.nodeidtoLsnMap.put(nodeid, lsn);						
