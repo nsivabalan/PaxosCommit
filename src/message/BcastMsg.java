@@ -11,6 +11,7 @@ public class BcastMsg extends MessageBase{
 	private String nodeid;
 	private Common.BcastMsgType type;	
 	private int gsn;
+	private String data;
 
 	//to bcast commit/abort msg
 	public BcastMsg(String nodeid,Common.BcastMsgType type, int gsn)
