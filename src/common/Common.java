@@ -1,4 +1,6 @@
 package common;
+import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,8 +24,15 @@ public class Common {
 	public static Integer NoPaxosLeaders = 2;
 	public static String FilePath = "";
 	public static Integer ReadLineCount = 0;
+
+	public static Integer init_timeout=2;
+	public static Integer commitabort_timeout=5;
 	
 	private static Map<String, String> NodeMap = new HashMap<String, String>();
+	public static String InQueueSuffix = "_IN";
+	
+	
+	//Instance Attributes
 	
 	//Enums
 	public enum State {ACTIVE, PAUSED};
@@ -77,6 +86,15 @@ public class Common {
 	public static Integer GetQuorumSize()
 	{
 		return (int) (Math.floor(Common.NoAcceptors/2) + 1);
+	}
+	
+	public static Timestamp getUpdatedTimestamp(Timestamp original, int sec){
+		
+		Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(original.getTime());
+        cal.add(Calendar.SECOND, sec);
+        Timestamp later = new Timestamp(cal.getTime().getTime());
+        return later;
 	}
 	//Instance Functions
 	

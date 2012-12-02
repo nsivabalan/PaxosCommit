@@ -1,8 +1,11 @@
 package node;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -31,14 +34,16 @@ public class Acceptor extends Node {
 		Integer gsn;
 		String data;
 		Common.AcceptorState state;
-		Set<String> Acceptors;		
+		Set<String> Acceptors;	
+		Timestamp timeout;
 	}
 
 	private String paxosLeaderId;
 	private String paxosLeaderExchange;
 	private Map<UUID, TransactionStatus> uidTransactionStatusMap;
 	private static int lastCommitGSN = 0;
-
+	private Iterator<UUID> itr;
+	
 	@SuppressWarnings("unchecked")
 	public Acceptor(String nodeId, String fileName, String paxosLeaderId) throws IOException
 	{
@@ -107,7 +112,27 @@ public class Acceptor extends Node {
 					//Message Discarded.
 				}
 			}
-			//TODO : logic for broadcast and timeout.
+			
+			//send bcast msgs for timeout transactions
+			itr=uidTransactionStatusMap.keySet().iterator();
+			while(itr.hasNext())
+			{
+				UUID uid=itr.next();
+				TransactionStatus temp= uidTransactionStatusMap.get(uid);
+				Timestamp curtime;
+				
+				if(temp.state == AcceptorState.COMMIT)
+				{
+					curtime=new Timestamp(new Date().getTime());
+					if(curtime.after(Common.getUpdatedTimestamp(temp.timeout, Common.commitabort_timeout)))
+					{
+						temp.timeout=new Timestamp(new Date().getTime());
+						this.uidTransactionStatusMap.put(uid,temp);
+						SendCommitMessage(uid);				
+					}
+				}
+			}
+			
 		}		
 	}
 
@@ -116,16 +141,17 @@ public class Acceptor extends Node {
 	{
 		TransactionStatus temp = new TransactionStatus();
 		temp.state = AcceptorState.ACCEPT;
+		temp.timeout=new Timestamp(new Date().getTime());
 		this.uidTransactionStatusMap.put(uid, temp);
 
 		PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACK, uid);
 		this.SendMessageToPaxosLeader(msg);
-
 	}
 
 	public void SendMessageToPaxosLeader(PaxosMsg msg) throws IOException
-	{		 
-		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, this.paxosLeaderId);
+	{	
+		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
+		messageController.SendMessage(msgwrap, Common.DirectMessageExchange, this.paxosLeaderId);
 	}
 
 	//method used to process commit msg from paxos leader
@@ -134,9 +160,11 @@ public class Acceptor extends Node {
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
 		temp.gsn=gsn;
 		temp.state=AcceptorState.COMMIT;		
+		temp.timeout=new Timestamp(new Date().getTime());
 		this.uidTransactionStatusMap.put(uid, temp);
 		ProcessCommitMessage(uid, gsn); //Write to file.
 
+		//shouldn't this be to bcast queue
 		PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACK, uid);
 		this.SendMessageToPaxosLeader(msg);		
 	}
@@ -171,8 +199,21 @@ public class Acceptor extends Node {
 		//TODO : write to file.
 		// Increment lastGSN;
 	}
+	
+    //to broadcast to other acceptors about the commit
+	public void SendCommitMessage(UUID uid) throws IOException
+	{
+		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);		
+		PaxosMsg commitmsg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.COMMIT, uid, temp.gsn);
+		SendPaxosMessage(commitmsg);
+	}
 
-
+	public void SendPaxosMessage(PaxosMsg msg) throws IOException
+	{
+		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
+		this.messageController.SendMessage(msgwrap, this.paxosLeaderExchange, "");	
+	}
+	
 	//method used to process commit acknowledgement from other acceptors
 	public void ProcessCommitAckMessage(UUID uid, int gsn, String nodeid)
 	{
@@ -189,7 +230,6 @@ public class Acceptor extends Node {
 			temp.state = AcceptorState.COMMIT;
 			temp.gsn = gsn;
 			this.uidTransactionStatusMap.put(uid, temp);
-
 			ProcessCommitToFile(uid, gsn);
 		}
 

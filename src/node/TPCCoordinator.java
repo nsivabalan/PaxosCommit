@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -37,16 +38,14 @@ public class TPCCoordinator extends Node {
 		Set<String> paxosLeaderListCommit;
 		Set<String> paxosLeaderListAbort;
 
-		Timestamp tmstamp_init;
-		Timestamp tmstamp_final;
+		Timestamp timeout;
 
 		public TransactionStatus(String clientRoutingKey)
 		{
 			this.gsn = -1;
 			this.state = TPCState.INIT;
 			this.clientRoutingKey = clientRoutingKey;
-			this.tmstamp_init = new Timestamp(new Date().getTime());
-			this.tmstamp_final = new Timestamp(new Date().getTime());
+			this.timeout = new Timestamp(new Date().getTime());
 
 			this.paxosLeaderListPrepare = new HashSet<String>();	
 			this.paxosLeaderListCommit =  new HashSet<String>();
@@ -61,7 +60,7 @@ public class TPCCoordinator extends Node {
 	private Map<String, String> resourcePaxosLeaderMap;
 	private Map<UUID, TransactionStatus> uidTransactionStatusMap;
 	private static int gsnCounter = 0;
-
+	private Iterator<UUID> itr;
 	public TPCCoordinator(String nodeId, String fileName,String bcastTPCQueueName) throws IOException {
 		//TPCCoordinator does not handle any resource.
 		super(nodeId, "");
@@ -124,8 +123,35 @@ public class TPCCoordinator extends Node {
 					// Discarded Message.
 				}
 			}
-
-			// TODO Check for timeouts.
+			//send bcast msgs for timeout transactions
+			itr=uidTransactionStatusMap.keySet().iterator();
+			while(itr.hasNext())
+			{
+				UUID uid=itr.next();
+				TransactionStatus temp= uidTransactionStatusMap.get(uid);
+				Timestamp curtime;
+				if(temp.state == TPCState.INIT)
+				{
+					curtime=new Timestamp(new Date().getTime());
+					if(curtime.after(Common.getUpdatedTimestamp(temp.timeout, Common.init_timeout)))
+					{
+						temp.state=TPCState.ABORT;
+						temp.timeout=new Timestamp(new Date().getTime());
+						this.uidTransactionStatusMap.put(uid, temp);
+						SendAbortMessage(uid, this.nodeId);				
+					}				
+				}
+				if(temp.state == TPCState.COMMIT)
+				{
+					curtime=new Timestamp(new Date().getTime());
+					if(curtime.after(Common.getUpdatedTimestamp(temp.timeout, Common.commitabort_timeout)))
+					{
+						temp.timeout=new Timestamp(new Date().getTime());
+						this.uidTransactionStatusMap.put(uid,temp);
+						SendCommitMessage(uid);				
+					}
+				}
+			}
 		}		
 	}
 
@@ -136,6 +162,10 @@ public class TPCCoordinator extends Node {
 		if(this.uidTransactionStatusMap.containsKey(uid))
 		{
 			TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
+			if(temp.state == TPCState.ABORT)
+			{
+				return;
+			}
 			temp.paxosLeaderListPrepare.add(nodeid);
 			if (temp.paxosLeaderListPrepare.size() == Common.NoPaxosLeaders)
 			{
@@ -143,7 +173,6 @@ public class TPCCoordinator extends Node {
 				int gsn = this.getNewGSN();
 				temp.gsn = gsn;
 				this.uidTransactionStatusMap.put(uid, temp);
-
 				SendCommitMessage(uid);
 			}
 			else 
@@ -159,7 +188,7 @@ public class TPCCoordinator extends Node {
 
 	}
 
-	//method used to process commit acknowlegement either of paxos leader
+	//method used to process commit acknowledgment from either of paxos leader
 	public void ProcessCommitAck(UUID uid, String nodeid) throws IOException
 	{
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
@@ -167,8 +196,10 @@ public class TPCCoordinator extends Node {
 
 		if (temp.paxosLeaderListCommit.size() == 1)
 		{	
+			temp.timeout=new Timestamp(new Date().getTime());
+			this.uidTransactionStatusMap.put(uid, temp);
 			ClientOpMsg msg = new ClientOpMsg(nodeid, ClientOPMsgType.APPEND_RESPONSE, "Committed", uid);
-			SendClientMessage(msg, temp.clientRoutingKey);
+			SendClientMessage(msg, temp.clientRoutingKey);			
 		}
 		else if (temp.paxosLeaderListCommit.size() == Common.NoPaxosLeaders) 
 		{
@@ -211,9 +242,9 @@ public class TPCCoordinator extends Node {
 	//if TPC doesnt receive info msg from both paxos leaders, it sends a abort msg paxos leader who has just sent the data
 	// or just the data(is there a need for lsn? if no, we can inform both the paxos leaders
 	//we just know the lsn from only one PL
-	public void SendAbortMessage(int lsn,String data,String nodeid) throws IOException
+	public void SendAbortMessage(UUID uid,String nodeid) throws IOException
 	{
-		TwoPCMsg abortmsg = new TwoPCMsg(this.nodeId, Common.TwoPCMsgType.ABORT, lsn);
+		TwoPCMsg abortmsg = new TwoPCMsg(this.nodeId, Common.TwoPCMsgType.ABORT,uid);
 		SendTPCMessage(abortmsg);
 	}
 
