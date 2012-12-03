@@ -112,9 +112,13 @@ public class PaxosLeader extends Node{
 
 				else if(msgwrap.getmessageclass() == PaxosMsg.class && this.NodeState == State.ACTIVE)
 				{
+					System.out.println("Received Paxos Message.");
+					
 					PaxosMsg msg = (PaxosMsg) msgwrap.getDeSerializedInnerMessage();
 					TransactionStatus temp = uidTransactionStatusMap.get(msg.getUID());
-
+					
+					System.out.println("Transaction Status "+temp.toString());
+					
 					if (temp.state == PaxosLeaderState.PREPARE)
 						ProcessPrepareAck(msg.getUID(), msg.getNodeid());
 
@@ -130,9 +134,15 @@ public class PaxosLeader extends Node{
 					TwoPCMsg msg = (TwoPCMsg) msgwrap.getDeSerializedInnerMessage();
 
 					if (msg.getType() == TwoPCMsgType.COMMIT)
+					{
+						System.out.println("Received gsn uid " + msg.getGsn() + msg.getUID());
 						ProcessCommitRequest(msg.getUID(), msg.getGsn());
+						
+					}
+						
 					else if (msg.getType() == TwoPCMsgType.ACK)
 						ProcessCommitAckRequestFromTPC(msg.getUID());
+					
 					else 
 						ProcessAbortRequest(msg.getUID());
 				}
@@ -189,11 +199,10 @@ public class PaxosLeader extends Node{
 	public void ProcessClientMessageData(ClientOpMsg msg) throws IOException
 	{
 		if(msg.getType()==Common.ClientOPMsgType.APPEND)
-		{			
-			UUID uid = msg.getUid();
-			String clientRoutingKey = msg.getNodeid();
-			
-			this.ProcessAppendRequest(uid, msg.getData(), clientRoutingKey);
+		{
+			System.out.println("Processing Client Append Request.");
+			System.out.println("msg is " + Common.Serialize(msg));
+			this.ProcessAppendRequest(msg.getUid(), msg.getData(), msg.getNodeid());
 		}
 		else
 		{
@@ -205,8 +214,9 @@ public class PaxosLeader extends Node{
 	//Process New Append Request from Client
 	public void ProcessAppendRequest(UUID uid, String data, String clientRoutingKey) throws IOException 
 	{
-		TransactionStatus temp=new TransactionStatus(data);
+		TransactionStatus temp = new TransactionStatus(data);
 		temp.clientRoutingKey = clientRoutingKey;
+		
 		this.uidTransactionStatusMap.put(uid, temp);
 
 		PaxosMsg paxosMsg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACCEPT, uid, data);
@@ -232,6 +242,7 @@ public class PaxosLeader extends Node{
 	public void ProcessCommitRequest(UUID uid, int gsn) throws IOException
 	{
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
+		System.out.println(" Transaction Status is " +temp.toString());
 		temp.gsn = gsn;
 		temp.state = Common.PaxosLeaderState.COMMIT;
 		this.uidTransactionStatusMap.put(uid, temp);
@@ -269,7 +280,7 @@ public class PaxosLeader extends Node{
 		{
 			temp.state = Common.PaxosLeaderState.ACCEPT;
 			
-			TwoPCMsg msg = new TwoPCMsg(this.nodeId, TwoPCMsgType.INFO, -1);
+			TwoPCMsg msg = new TwoPCMsg(this.nodeId, TwoPCMsgType.INFO, uid);
 			msg.setClientRoutingKey(temp.clientRoutingKey);
 			this.SendTPCMsg(msg);
 		}
@@ -287,7 +298,7 @@ public class PaxosLeader extends Node{
 		if (temp.acceptorListCommit.size() >= Common.GetQuorumSize() && temp.state == PaxosLeaderState.COMMIT) 
 		{
 			temp.state = Common.PaxosLeaderState.COMMIT_ACK;
-			TwoPCMsg msg = new TwoPCMsg(this.nodeId, TwoPCMsgType.COMMIT, temp.gsn);
+			TwoPCMsg msg = new TwoPCMsg(this.nodeId, TwoPCMsgType.COMMIT, uid, temp.gsn);
 			this.SendTPCMsg(msg);
 		}
 		else
@@ -305,7 +316,7 @@ public class PaxosLeader extends Node{
 		if (temp.acceptorListAbort.size() >= Common.GetQuorumSize() && temp.state == PaxosLeaderState.ABORT) 
 		{			
 			temp.state = Common.PaxosLeaderState.ABORT_ACK;
-			TwoPCMsg msg = new TwoPCMsg(this.nodeId, TwoPCMsgType.ABORT, temp.gsn);
+			TwoPCMsg msg = new TwoPCMsg(this.nodeId, TwoPCMsgType.ABORT, uid, temp.gsn);
 			this.SendTPCMsg(msg);
 
 		}
@@ -320,7 +331,7 @@ public class PaxosLeader extends Node{
 	public void SendTPCMsg(TwoPCMsg msg) throws IOException
 	{		
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
-		this.messageController.SendMessage(msgwrap, this.paxosLeaderExchange, "");
+		this.messageController.SendMessage(msgwrap, Common.DirectMessageExchange, this.tpcCoordinatorId);
 	}
 
 }

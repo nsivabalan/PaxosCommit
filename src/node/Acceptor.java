@@ -69,8 +69,6 @@ public class Acceptor extends Node {
 			MessageWrapper msgwrap= messageController.ReceiveMessage();   
 			if (msgwrap != null)
 			{
-
-
 				if (msgwrap.getmessageclass() == BcastMsg.class  && this.NodeState == State.ACTIVE)
 				{
 					BcastMsg msg = (BcastMsg) msgwrap.getDeSerializedInnerMessage();
@@ -140,8 +138,11 @@ public class Acceptor extends Node {
 	public void ProcessAcceptMessage(UUID uid, String data) throws IOException
 	{
 		TransactionStatus temp = new TransactionStatus();
+		
+		temp.data = data;
 		temp.state = AcceptorState.ACCEPT;
 		temp.timeout=new Timestamp(new Date().getTime());
+		
 		this.uidTransactionStatusMap.put(uid, temp);
 
 		PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACK, uid);
@@ -162,7 +163,7 @@ public class Acceptor extends Node {
 		temp.state=AcceptorState.COMMIT;		
 		temp.timeout=new Timestamp(new Date().getTime());
 		this.uidTransactionStatusMap.put(uid, temp);
-		ProcessCommitMessage(uid, gsn); //Write to file.
+		ProcessCommitToFile(uid, gsn); //Write to file.
 
 		//shouldn't this be to bcast queue
 		PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACK, uid);
@@ -180,11 +181,12 @@ public class Acceptor extends Node {
 	public void ProcessCommitToFile(UUID uid, int gsn)
 	{
 		if (gsn == this.lastCommitGSN + 1)
-		{
-			ProcessAppendToFile(uid);			
-
+		{			
+			ProcessAppendToFile(uid);
+			
 			while(true)
 			{
+				break;
 				//TODO : Process buffer contents to commit.
 			}
 		}
@@ -196,8 +198,8 @@ public class Acceptor extends Node {
 
 	public void ProcessAppendToFile(UUID uid)
 	{
-		//TODO : write to file.
-		// Increment lastGSN;
+		this.localResource.AppendtoResource(this.uidTransactionStatusMap.get(uid).data);
+		this.lastCommitGSN += 1;
 	}
 	
     //to broadcast to other acceptors about the commit

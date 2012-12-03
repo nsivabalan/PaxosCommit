@@ -19,7 +19,7 @@ public class ClientOpMsg extends MessageBase{
 		this.uid = uid;
 	}
 
-	public ClientOpMsg(String nodeid,Common.ClientOPMsgType type,String data, UUID uid)
+	public ClientOpMsg(String nodeid, Common.ClientOPMsgType type, String data, UUID uid)
 	{
 		this.nodeid=nodeid;
 		this.type=type;

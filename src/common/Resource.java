@@ -21,7 +21,7 @@ public class Resource {
 	public Resource(String fileName, String path) throws IOException
 	{
 		this.fileName = fileName;
-		this.file = new File(path+fileName);
+		this.file = new File(path + "/" + fileName);
 		this.fileReader = new FileReader(this.file);
 		
 	}

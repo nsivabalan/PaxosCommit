@@ -22,16 +22,6 @@ public class Client extends Node implements Runnable{
 		this.InitializeConsumer();
 	}
 
-	public static void main(String args[]) throws Exception
-	{
-		String nodeid=args[0];
-		String leaderOne=args[1];
-		String leaderTwo=args[2];
-		Client clientobj=new Client(nodeid, leaderOne, leaderTwo);
-		new Thread(clientobj).start();
-		clientobj.ProcessInput();
-	}
-
 	public void ProcessInput() throws IOException, InterruptedException
 	{
 		String requesttype,request;
@@ -53,24 +43,24 @@ public class Client extends Node implements Runnable{
 			else if (requesttype.equals("append")){
 				System.out.println("Enter data ");
 				request = in.nextLine();				
-				msg = new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.APPEND, paxosLeaderOneId,java.util.UUID.randomUUID());
-				msg.setData(request);
+				msg = new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.APPEND, request, java.util.UUID.randomUUID());
+				//msg.setData(request);
 				this.sendClientOpMsg(msg, this.paxosLeaderOneId);
-				msg.setNodeid(paxosLeaderTwoId);
+				//msg.setNodeid(paxosLeaderTwoId);
 				this.sendClientOpMsg(msg, this.paxosLeaderTwoId);
 			}
 
-		Thread.sleep(60000);
+		Thread.sleep(600);
 		}
 	}
 
-	public void sendClientOpMsg(ClientOpMsg msg,String destid) throws IOException
+	public void sendClientOpMsg(ClientOpMsg msg, String destid) throws IOException
 	{
 		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);
 	}
 
 	public void run(){
-
+		System.out.println("Inside run");
 		while (true) {
 			MessageWrapper msgwrap;
 			try {

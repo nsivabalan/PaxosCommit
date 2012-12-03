@@ -25,8 +25,8 @@ public class Common {
 	public static String FilePath = "";
 	public static Integer ReadLineCount = 0;
 
-	public static Integer init_timeout=2;
-	public static Integer commitabort_timeout=5;
+	public static Integer init_timeout=10;
+	public static Integer commitabort_timeout=15;
 	
 	private static Map<String, String> NodeMap = new HashMap<String, String>();
 	public static String InQueueSuffix = "_IN";

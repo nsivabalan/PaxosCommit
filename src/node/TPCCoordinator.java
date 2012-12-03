@@ -61,7 +61,7 @@ public class TPCCoordinator extends Node {
 	private Map<UUID, TransactionStatus> uidTransactionStatusMap;
 	private static int gsnCounter = 0;
 	private Iterator<UUID> itr;
-	public TPCCoordinator(String nodeId, String fileName,String bcastTPCQueueName) throws IOException {
+	public TPCCoordinator(String nodeId) throws IOException {
 		//TPCCoordinator does not handle any resource.
 		super(nodeId, "");
 
@@ -132,13 +132,15 @@ public class TPCCoordinator extends Node {
 				Timestamp curtime;
 				if(temp.state == TPCState.INIT)
 				{
+					System.out.println("Timeout Check");
 					curtime=new Timestamp(new Date().getTime());
 					if(curtime.after(Common.getUpdatedTimestamp(temp.timeout, Common.init_timeout)))
 					{
 						temp.state=TPCState.ABORT;
 						temp.timeout=new Timestamp(new Date().getTime());
 						this.uidTransactionStatusMap.put(uid, temp);
-						SendAbortMessage(uid, this.nodeId);				
+						SendAbortMessage(uid, this.nodeId);
+						System.out.println("Aborting");
 					}				
 				}
 				if(temp.state == TPCState.COMMIT)
@@ -161,19 +163,25 @@ public class TPCCoordinator extends Node {
 	{
 		if(this.uidTransactionStatusMap.containsKey(uid))
 		{
+			System.out.println("Processing Info Request");
+			
 			TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
 			if(temp.state == TPCState.ABORT)
 			{
 				return;
 			}
 			temp.paxosLeaderListPrepare.add(nodeid);
+			System.out.println("Size = "+ temp.paxosLeaderListPrepare.size());
+			System.out.println(temp.paxosLeaderListPrepare.toString());
 			if (temp.paxosLeaderListPrepare.size() == Common.NoPaxosLeaders)
 			{
+				System.out.println("Preparing Commit");
 				temp.state = TPCState.COMMIT;
 				int gsn = this.getNewGSN();
 				temp.gsn = gsn;
 				this.uidTransactionStatusMap.put(uid, temp);
 				SendCommitMessage(uid);
+				
 			}
 			else 
 			{
@@ -183,6 +191,7 @@ public class TPCCoordinator extends Node {
 		else
 		{
 			TransactionStatus temp = new TransactionStatus(clientRoutingKey);
+			temp.paxosLeaderListPrepare.add(nodeid);
 			this.uidTransactionStatusMap.put(uid, temp);
 		}
 
@@ -252,6 +261,7 @@ public class TPCCoordinator extends Node {
 	//call this method for each PL with diff lsn values
 	public void SendCommitMessage(UUID uid) throws IOException
 	{
+		System.out.println("Sending Commit Message.");
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);		
 		TwoPCMsg commitmsg = new TwoPCMsg(this.nodeId, Common.TwoPCMsgType.COMMIT, uid, temp.gsn);
 
@@ -261,6 +271,7 @@ public class TPCCoordinator extends Node {
 
 	public void SendTPCMessage(TwoPCMsg msg) throws IOException
 	{
+		System.out.println("Sending TPC Message");
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.TwoPCExchange, "");
 	}
@@ -273,7 +284,7 @@ public class TPCCoordinator extends Node {
 	}
 
 	private static int getNewGSN(){
-		return gsnCounter++;
+		return ++gsnCounter;
 	}
 
 }

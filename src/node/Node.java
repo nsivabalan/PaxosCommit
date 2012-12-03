@@ -33,7 +33,8 @@ public class Node {
 		this.NodeState = Common.State.ACTIVE;
 		
 		//Bind the resource
-		this.localResource = new Resource(fileName, Common.FilePath);
+		if(!fileName.equals(""))
+			this.localResource = new Resource(fileName, Common.FilePath);
 
 		//RMQ Message Controller.
 		this.messageController = new MessageController(this.nodeId);
