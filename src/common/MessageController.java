@@ -49,7 +49,8 @@ public class MessageController {
 		if(delivery != null)
 		{
 			String msg = new String(delivery.getBody());
-			System.out.println("Received Message" + msg);
+			
+			System.out.println(msg);
 			wrapper = MessageWrapper.getDeSerializedMessage(msg); 
 		}
 		
@@ -59,8 +60,7 @@ public class MessageController {
 	//Send message to the queue.
 	public void SendMessage(MessageWrapper message, String exchangeName, String routingKey) throws IOException
 	{
-		channel.basicPublish(exchangeName, routingKey, null, message.getSerializedMessage().getBytes());
-		System.out.println("Sent Message "+ message.getSerializedMessage());
+		channel.basicPublish(exchangeName, routingKey, null, message.getSerializedMessage().getBytes());		
 	}
 			
 }
