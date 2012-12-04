@@ -58,7 +58,7 @@ public class BcastMsg extends MessageBase{
 	
 	@Override
 	public String toString() {
-		StringBuffer bf = new StringBuffer();
+		StringBuilder bf = new StringBuilder();
 		
 		bf.append("\n" + this.getClass().getName() + " - " + this.type);
 		bf.append("\n Source - " + this.nodeid);

@@ -49,7 +49,7 @@ public class ClientOpMsg extends MessageBase{
 	}
 
 	public String toString() {
-		StringBuffer bf = new StringBuffer();
+		StringBuilder bf = new StringBuilder();
 		
 		bf.append("\n" + this.getClass().getName() + " - " + this.type);
 		bf.append("\n Source - " + this.nodeid);
