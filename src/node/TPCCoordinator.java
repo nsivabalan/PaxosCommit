@@ -131,7 +131,7 @@ public class TPCCoordinator extends Node {
 				}
 			}
 			//send bcast msgs for timeout transactions
-			itr=uidTransactionStatusMap.keySet().iterator();
+			/*itr=uidTransactionStatusMap.keySet().iterator();
 			while(itr.hasNext())
 			{
 				UUID uid=itr.next();
@@ -160,7 +160,7 @@ public class TPCCoordinator extends Node {
 						SendCommitMessage(uid);				
 					}
 				}
-			}
+			}*/
 		}		
 	}
 
