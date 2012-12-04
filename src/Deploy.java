@@ -4,6 +4,7 @@ import common.Common;
 
 import node.Acceptor;
 import node.Client;
+import node.ClientResponse;
 import node.PaxosLeader;
 import node.TPCCoordinator;
 import node.Node;
@@ -54,10 +55,18 @@ public class Deploy {
 			String paxosLeader2 = args[3];
 			
 			Client node = new Client(deployNodeId, paxosLeader1, paxosLeader2);
-			System.out.println("creating thread.");
-			new Thread(node).start();
 			System.out.println("processing input");
 			node.ProcessInput();
+		}
+		
+		else if (deployNodeType.equals("ClientResponse"))
+		{			
+			String paxosLeader1 = args[2];
+			String paxosLeader2 = args[3];
+			
+			ClientResponse node = new ClientResponse(deployNodeId, paxosLeader1, paxosLeader2);
+			System.out.println("creating thread.");
+			new Thread(node).start();
 		}
 		
 	}
