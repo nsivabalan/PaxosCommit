@@ -58,8 +58,6 @@ public class Common {
 	public static <T> T Deserialize(String json, Class className)
 	{
 		Gson gson = new Gson();
-		System.out.println(json);
-		System.out.println(gson.fromJson(json, className));
 		return (T) gson.fromJson(json, className);
 	}
 	

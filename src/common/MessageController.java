@@ -49,8 +49,6 @@ public class MessageController {
 		if(delivery != null)
 		{
 			String msg = new String(delivery.getBody());
-			
-			System.out.println(msg);
 			wrapper = MessageWrapper.getDeSerializedMessage(msg); 
 		}
 		
