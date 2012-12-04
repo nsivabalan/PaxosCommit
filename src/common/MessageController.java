@@ -31,12 +31,12 @@ public class MessageController {
 	{
 		this.channel.exchangeDeclare(exchange, exchangeType);
 		
-		//if (bindQ)
-			//{
+		if (bindQ)
+			{
 			this.channel.queueBind(this.queueName, exchange, this.queueName);
-			//}
-		//else
-			//this.channel.queueUnbind(this.queueName, exchange, this.queueName);
+			}
+		else
+			this.channel.queueUnbind(this.queueName, exchange, this.queueName);
 		
 	}
 

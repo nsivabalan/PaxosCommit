@@ -54,7 +54,7 @@ public class Acceptor extends Node {
 
 		ArrayList<Triplet<String, String, Boolean>> exchanges = new ArrayList<Triplet<String, String, Boolean>>();
 		exchanges.add(new Triplet(Common.DirectMessageExchange, Common.directExchangeType, true));
-		exchanges.add(new Triplet(this.paxosLeaderExchange, Common.bcastExchangeType, false));
+		exchanges.add(new Triplet(this.paxosLeaderExchange, Common.bcastExchangeType, true));
 		this.DeclareExchanges(exchanges);
 		this.InitializeConsumer();
 
