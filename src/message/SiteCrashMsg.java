@@ -23,8 +23,8 @@ public class SiteCrashMsg extends MessageBase{
 	public String toString() {
 		StringBuffer bf = new StringBuffer();
 		
-		bf.append("Received - " + this.getClass().getName() + " - " + this.type);
-		bf.append("Source - " + this.nodeid);
+		bf.append("\n" + this.getClass().getName() + " - " + this.type);
+		bf.append("\n Source - " + this.nodeid);
 		bf.append("\n");
 		
 		return bf.toString();

@@ -60,10 +60,10 @@ public class BcastMsg extends MessageBase{
 	public String toString() {
 		StringBuffer bf = new StringBuffer();
 		
-		bf.append("Received - " + this.getClass().getName() + " - " + this.type);
-		bf.append("Source - " + this.nodeid);
-		bf.append("GSN - " + this.gsn);
-		bf.append("Data - " + this.data);
+		bf.append("\n" + this.getClass().getName() + " - " + this.type);
+		bf.append("\n Source - " + this.nodeid);
+		bf.append("\n GSN - " + this.gsn);
+		bf.append("\n Data - " + this.data);
 		bf.append("\n");
 		
 		return bf.toString();

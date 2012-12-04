@@ -119,10 +119,10 @@ public class TwoPCMsg extends MessageBase{
 	public String toString() {
 		StringBuffer bf = new StringBuffer();
 		
-		bf.append("Received - " + this.getClass().getName() + " - " + this.type);
-		bf.append("Source - " + this.nodeid);
-		bf.append("UID - " + this.uid);
-		bf.append("GSN - " + this.gsn);
+		bf.append("\n"+this.getClass().getName() + " - " + this.type);
+		bf.append("\n Source - " + this.nodeid);
+		bf.append("\n UID - " + this.uid);
+		bf.append("\n GSN - " + this.gsn);
 		bf.append("\n");
 		
 		return bf.toString();
