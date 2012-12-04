@@ -47,5 +47,17 @@ public class ClientOpMsg extends MessageBase{
 	public void setData(String data) {
 		this.data = data;
 	}
+
+	public String toString() {
+		StringBuffer bf = new StringBuffer();
+		
+		bf.append("Received - " + this.getClass().getName() + " - " + this.type);
+		bf.append("Source - " + this.nodeid);
+		bf.append("UID - " + this.uid);		
+		bf.append("Data - " + this.data);
+		bf.append("\n");
+		
+		return bf.toString();
+	}
 	
 }
