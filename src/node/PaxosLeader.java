@@ -42,7 +42,7 @@ public class PaxosLeader extends Node{
 		String data;
 		String clientRoutingKey;
 		Boolean isCommitAckReceived;
-		
+
 		Set<String> acceptorListPrepare;
 		Set<String> acceptorListCommit;
 		Set<String> acceptorListAbort;
@@ -62,11 +62,11 @@ public class PaxosLeader extends Node{
 	private String tpcCoordinatorId;
 	private String paxosLeaderExchange;
 	private String tpcCoordinatorExchance;
-	
+
 	private int readLineNumber;
 	private Map<UUID, TransactionStatus> uidTransactionStatusMap;
 	private SortedSet<Map.Entry<UUID, TransactionStatus>> uidCommitAckStatusSet;
-	
+
 	public PaxosLeader(String nodeId, String fileName, String tpcCoordinatorId) throws IOException {		
 		super(nodeId, fileName);
 
@@ -84,7 +84,7 @@ public class PaxosLeader extends Node{
 
 		this.readLineNumber = Common.ReadLineCount;
 		this.uidTransactionStatusMap = new HashMap<UUID, TransactionStatus>();
-		
+
 		this.uidCommitAckStatusSet = new TreeSet<Map.Entry<UUID, TransactionStatus>>(
 				new Comparator<Map.Entry<UUID, TransactionStatus>>() {
 					@Override
@@ -100,31 +100,31 @@ public class PaxosLeader extends Node{
 	public void run() throws IOException, InterruptedException, ClassNotFoundException{
 
 		while (true) {
-			
+
 			MessageWrapper msgwrap =  messageController.ReceiveMessage();    
 			if (msgwrap != null ) {
 
 				if(msgwrap.getmessageclass() == ClientOpMsg.class && this.NodeState == State.ACTIVE)
 				{
 					ClientOpMsg msg = (ClientOpMsg) msgwrap.getDeSerializedInnerMessage();
-					
+
 					//Print msg
 					System.out.println("Received " + msg);
-					
+
 					ProcessClientMessageData(msg);
 				}
 
 				else if(msgwrap.getmessageclass() == PaxosMsg.class && this.NodeState == State.ACTIVE)
 				{
-					
-					
+
+
 					PaxosMsg msg = (PaxosMsg) msgwrap.getDeSerializedInnerMessage();
-					
+
 					//Print msg
 					System.out.println("Received " + msg);
-					
+
 					TransactionStatus temp = uidTransactionStatusMap.get(msg.getUID());
-					
+
 					if (temp.state == PaxosLeaderState.PREPARE)
 						ProcessPrepareAck(msg.getUID(), msg.getNodeid());
 
@@ -138,29 +138,29 @@ public class PaxosLeader extends Node{
 				else if(msgwrap.getmessageclass() == TwoPCMsg.class && this.NodeState == State.ACTIVE)
 				{
 					TwoPCMsg msg = (TwoPCMsg) msgwrap.getDeSerializedInnerMessage();
-					
+
 					//Print msg
 					System.out.println("Received " + msg);
 
 					if (msg.getType() == TwoPCMsgType.COMMIT)
 					{						
 						ProcessCommitRequest(msg.getUID(), msg.getGsn());
-						
+
 					}
-						
+
 					else if (msg.getType() == TwoPCMsgType.ACK)
 						ProcessCommitAckRequestFromTPC(msg.getUID());
-					
+
 					else 
 						ProcessAbortRequest(msg.getUID());
 				}
 				else if (msgwrap.getmessageclass() == SiteCrashMsg.class)
 				{
 					SiteCrashMsg msg = (SiteCrashMsg) msgwrap.getDeSerializedInnerMessage();
-					
+
 					//Print msg
 					System.out.println("Received " + msg);
-					
+
 					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
 					{
 						this.NodeState = State.PAUSED;
@@ -180,33 +180,6 @@ public class PaxosLeader extends Node{
 		}		
 	}
 
-	public void ProcessCommitAckRequestFromTPC(UUID uid)
-	{
-		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
-		temp.isCommitAckReceived = true;
-		this.uidTransactionStatusMap.put(uid, temp);
-		
-		this.uidCommitAckStatusSet.addAll(this.uidTransactionStatusMap.entrySet());
-		
-		while(true)
-		{
-			Entry<UUID, TransactionStatus> e =  this.uidCommitAckStatusSet.first();
-			if(e.getValue().gsn == -1 )
-				this.uidCommitAckStatusSet.remove(e);
-			
-			else if (e.getValue().isCommitAckReceived)
-			{
-				this.readLineNumber += 1;
-				this.uidCommitAckStatusSet.remove(e);
-			}
-			else 
-			{
-				break;
-			}
-		}
-		
-	}
-	
 	//method used to process client msg
 	public void ProcessClientMessageData(ClientOpMsg msg) throws IOException
 	{
@@ -226,12 +199,13 @@ public class PaxosLeader extends Node{
 	{
 		TransactionStatus temp = new TransactionStatus(data);
 		temp.clientRoutingKey = clientRoutingKey;
-		
+
 		this.uidTransactionStatusMap.put(uid, temp);
 
 		PaxosMsg paxosMsg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACCEPT, uid, data);
 		SendPaxosMsg(paxosMsg);
 	}
+
 
 	//Process New Read Request from Client
 	public String ProcessReadRequest()
@@ -240,14 +214,28 @@ public class PaxosLeader extends Node{
 		return new String();
 	}
 
-	//Broadcast append request to all acceptors.
-	public void SendPaxosMsg(PaxosMsg msg) throws IOException
-	{		
-		//Print msg
-		System.out.println("Sent " + msg);
+	//Process Ack from Acceptor
+	public void ProcessPrepareAck(UUID uid, String nodeId) throws IOException
+	{
+		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
+		temp.acceptorListPrepare.add(nodeId);
 				
-		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
-		this.messageController.SendMessage(msgwrap, this.paxosLeaderExchange, "");
+		System.out.println("Acceptor List " + temp.acceptorListPrepare.toString());
+		System.out.println("Quorum size " + Common.GetQuorumSize());
+		
+		if (temp.acceptorListPrepare.size() >= Common.GetQuorumSize() && temp.state == PaxosLeaderState.PREPARE) 
+		{
+			temp.state = Common.PaxosLeaderState.ACCEPT;
+
+			TwoPCMsg msg = new TwoPCMsg(this.nodeId, TwoPCMsgType.INFO, uid);
+			msg.setClientRoutingKey(temp.clientRoutingKey);
+			this.SendTPCMsg(msg);
+		}
+		else
+		{
+			//Add if required.
+		}
+		this.uidTransactionStatusMap.put(uid, temp);
 	}
 
 
@@ -255,11 +243,11 @@ public class PaxosLeader extends Node{
 	public void ProcessCommitRequest(UUID uid, int gsn) throws IOException
 	{
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
-		
+
 		temp.gsn = gsn;
 		temp.state = Common.PaxosLeaderState.COMMIT;
 		this.uidTransactionStatusMap.put(uid, temp);
-		
+
 		//propagate info to all acceptors
 		PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.COMMIT, uid, gsn);
 		SendPaxosMsg(msg);
@@ -282,27 +270,6 @@ public class PaxosLeader extends Node{
 		SendPaxosMsg(msg);
 	}
 
-
-	//Process Ack from Acceptor
-	public void ProcessPrepareAck(UUID uid, String nodeId) throws IOException
-	{
-		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
-		temp.acceptorListPrepare.add(nodeId);
-
-		if (temp.acceptorListPrepare.size() >= Common.GetQuorumSize() && temp.state == PaxosLeaderState.PREPARE) 
-		{
-			temp.state = Common.PaxosLeaderState.ACCEPT;
-			
-			TwoPCMsg msg = new TwoPCMsg(this.nodeId, TwoPCMsgType.INFO, uid);
-			msg.setClientRoutingKey(temp.clientRoutingKey);
-			this.SendTPCMsg(msg);
-		}
-		else
-		{
-			//Add if required.
-		}
-		this.uidTransactionStatusMap.put(uid, temp);
-	}
 
 	public void ProcessCommitAck(UUID uid, String nodeId) throws IOException
 	{
@@ -339,15 +306,51 @@ public class PaxosLeader extends Node{
 		}
 		this.uidTransactionStatusMap.put(uid, temp);
 	}
+	public void ProcessCommitAckRequestFromTPC(UUID uid)
+	{
+		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
+		temp.isCommitAckReceived = true;
+		this.uidTransactionStatusMap.put(uid, temp);
+
+		this.uidCommitAckStatusSet.addAll(this.uidTransactionStatusMap.entrySet());
+
+		while(true)
+		{
+			Entry<UUID, TransactionStatus> e =  this.uidCommitAckStatusSet.first();
+			if(e.getValue().gsn == -1 )
+				this.uidCommitAckStatusSet.remove(e);
+
+			else if (e.getValue().isCommitAckReceived)
+			{
+				this.readLineNumber += 1;
+				this.uidCommitAckStatusSet.remove(e);
+			}
+			else 
+			{
+				break;
+			}
+		}
+
+	}
 
 	//Send Message to TPC Coord.
 	public void SendTPCMsg(TwoPCMsg msg) throws IOException
 	{		
 		//Print msg
 		System.out.println("Sent " + msg);
-		
+
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, Common.DirectMessageExchange, this.tpcCoordinatorId);
+	}
+
+	//Broadcast append request to all acceptors.
+	public void SendPaxosMsg(PaxosMsg msg) throws IOException
+	{		
+		//Print msg
+		System.out.println("Sent " + msg);
+
+		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
+		this.messageController.SendMessage(msgwrap, this.paxosLeaderExchange, "");
 	}
 
 }
