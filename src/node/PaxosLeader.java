@@ -107,17 +107,23 @@ public class PaxosLeader extends Node{
 				if(msgwrap.getmessageclass() == ClientOpMsg.class && this.NodeState == State.ACTIVE)
 				{
 					ClientOpMsg msg = (ClientOpMsg) msgwrap.getDeSerializedInnerMessage();
+					
+					//Print msg
+					System.out.println("Received " + msg);
+					
 					ProcessClientMessageData(msg);
 				}
 
 				else if(msgwrap.getmessageclass() == PaxosMsg.class && this.NodeState == State.ACTIVE)
 				{
-					System.out.println("Received Paxos Message.");
+					
 					
 					PaxosMsg msg = (PaxosMsg) msgwrap.getDeSerializedInnerMessage();
-					TransactionStatus temp = uidTransactionStatusMap.get(msg.getUID());
 					
-					System.out.println("Transaction Status "+temp.toString());
+					//Print msg
+					System.out.println("Received " + msg);
+					
+					TransactionStatus temp = uidTransactionStatusMap.get(msg.getUID());
 					
 					if (temp.state == PaxosLeaderState.PREPARE)
 						ProcessPrepareAck(msg.getUID(), msg.getNodeid());
@@ -132,6 +138,9 @@ public class PaxosLeader extends Node{
 				else if(msgwrap.getmessageclass() == TwoPCMsg.class && this.NodeState == State.ACTIVE)
 				{
 					TwoPCMsg msg = (TwoPCMsg) msgwrap.getDeSerializedInnerMessage();
+					
+					//Print msg
+					System.out.println("Received " + msg);
 
 					if (msg.getType() == TwoPCMsgType.COMMIT)
 					{
@@ -149,6 +158,10 @@ public class PaxosLeader extends Node{
 				else if (msgwrap.getmessageclass() == SiteCrashMsg.class)
 				{
 					SiteCrashMsg msg = (SiteCrashMsg) msgwrap.getDeSerializedInnerMessage();
+					
+					//Print msg
+					System.out.println("Received " + msg);
+					
 					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
 					{
 						this.NodeState = State.PAUSED;
@@ -233,6 +246,9 @@ public class PaxosLeader extends Node{
 	//Broadcast append request to all acceptors.
 	public void SendPaxosMsg(PaxosMsg msg) throws IOException
 	{		
+		//Print msg
+		System.out.println("Sent " + msg);
+				
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.paxosLeaderExchange, "");
 	}
@@ -330,6 +346,9 @@ public class PaxosLeader extends Node{
 	//Send Message to TPC Coord.
 	public void SendTPCMsg(TwoPCMsg msg) throws IOException
 	{		
+		//Print msg
+		System.out.println("Sent " + msg);
+		
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, Common.DirectMessageExchange, this.tpcCoordinatorId);
 	}

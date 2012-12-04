@@ -71,8 +71,12 @@ public class Acceptor extends Node {
 			{
 				if (msgwrap.getmessageclass() == BcastMsg.class  && this.NodeState == State.ACTIVE)
 				{
+					
 					BcastMsg msg = (BcastMsg) msgwrap.getDeSerializedInnerMessage();
-
+					
+					//Print msg
+					System.out.println("Received " + msg);
+					
 					if(msg.getType() == BcastMsgType.COMMIT_ACK)
 						ProcessCommitAckMessage(msg.getUID(), msg.getGsn(), msg.getNodeid());
 
@@ -84,6 +88,9 @@ public class Acceptor extends Node {
 				{
 					PaxosMsg msg = (PaxosMsg) msgwrap.getDeSerializedInnerMessage();
 
+					//Print msg
+					System.out.println("Received " + msg);
+					
 					if(msg.getType() == PaxosMsgType.ACCEPT)
 						ProcessAcceptMessage(msg.getUID(), msg.getData());
 
@@ -96,6 +103,10 @@ public class Acceptor extends Node {
 				else if (msgwrap.getmessageclass() == SiteCrashMsg.class)
 				{
 					SiteCrashMsg msg = (SiteCrashMsg) msgwrap.getDeSerializedInnerMessage();
+					
+					//Print msg
+					System.out.println("Received " + msg);
+					
 					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
 					{
 						this.NodeState = State.PAUSED;
@@ -212,6 +223,9 @@ public class Acceptor extends Node {
 
 	public void SendPaxosMessage(PaxosMsg msg) throws IOException
 	{
+		//Print msg
+		System.out.println("Sent " + msg);
+
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.paxosLeaderExchange, "");	
 	}

@@ -22,7 +22,7 @@ public class Deploy {
 		// TODO Auto-generated method stub
 		
 		Common.RMQServer = "localhost";
-		Common.FilePath = "/home/sivabalan/deploy";
+		Common.FilePath = "/home/anduril/deploy";
 		
 		String deployNodeId = args[0];
 		String deployNodeType = args[1];

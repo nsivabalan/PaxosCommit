@@ -96,6 +96,9 @@ public class TPCCoordinator extends Node {
 				{
 					TwoPCMsg msg = (TwoPCMsg) msgwrap.getDeSerializedInnerMessage();
 
+					//Print msg
+					System.out.println("Received " + msg);
+					
 					if (msg.getType() == TwoPCMsgType.INFO)
 						ProcessInfoRequest(msg.getUID(), msg.getNodeid(), msg.getClientRoutingKey());
 
@@ -109,6 +112,10 @@ public class TPCCoordinator extends Node {
 				else if (msgwrap.getmessageclass() == SiteCrashMsg.class)
 				{
 					SiteCrashMsg msg = (SiteCrashMsg) msgwrap.getDeSerializedInnerMessage();
+					
+					//Print msg
+					System.out.println("Received " + msg);
+					
 					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
 					{
 						this.NodeState = State.PAUSED;
@@ -271,7 +278,9 @@ public class TPCCoordinator extends Node {
 
 	public void SendTPCMessage(TwoPCMsg msg) throws IOException
 	{
-		System.out.println("Sending TPC Message");
+		//Print msg
+		System.out.println("Sent " + msg);
+		
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.TwoPCExchange, "");
 	}
