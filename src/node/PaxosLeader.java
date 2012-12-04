@@ -143,8 +143,7 @@ public class PaxosLeader extends Node{
 					System.out.println("Received " + msg);
 
 					if (msg.getType() == TwoPCMsgType.COMMIT)
-					{
-						System.out.println("Received gsn uid " + msg.getGsn() + msg.getUID());
+					{						
 						ProcessCommitRequest(msg.getUID(), msg.getGsn());
 						
 					}
