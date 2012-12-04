@@ -10,6 +10,7 @@ public class MessageController {
 	private ConnectionFactory factory;
 	private Connection connection;
 	private Channel channel;
+	private Channel bChannel;
 	private QueueingConsumer consumer;
 	
 	private String queueName;
@@ -23,20 +24,48 @@ public class MessageController {
 		connection = factory.newConnection();
 		channel = connection.createChannel();
 		
+		bChannel = connection.createChannel();
+		
 		//Initialize Node queue.
 		this.channel.queueDeclare(this.queueName, true, false, false, null);
 	}
 	
 	public void DeclareExchange(String exchange, String exchangeType, Boolean bindQ) throws IOException
 	{
-		this.channel.exchangeDeclare(exchange, exchangeType);
+		if(bindQ)
+		{
+			this.channel.exchangeDeclare(exchange, exchangeType);
+			this.channel.queueBind(this.queueName, exchange, this.queueName);
+			this.bChannel.exchangeDeclare(exchange, exchangeType);
+			this.bChannel.queueBind(this.queueName, exchange, this.queueName);
+		}
+		else
+		{
+			this.bChannel.exchangeDeclare(exchange, exchangeType);
+			//this.bChannel.queueUnbind(this.queueName, exchange, this.queueName);			
+		}
 		
+		/*
+		if(bindQ)
+		{
+			this.bChannel.exchangeDeclare(exchange, exchangeType);
+			this.bChannel.queueBind(this.queueName, exchange, this.queueName);
+		}
+		else
+		{
+			this.bChannel.exchangeDeclare(exchange, exchangeType);
+			this.bChannel.queueUnbind(this.queueName, exchange, this.queueName);
+		}
+		*/
+		/*
 		if (bindQ)
 			{
-			this.channel.queueBind(this.queueName, exchange, this.queueName);
+			
 			}
 		else
 			this.channel.queueUnbind(this.queueName, exchange, this.queueName);
+			
+		*/
 		
 	}
 
@@ -65,7 +94,8 @@ public class MessageController {
 	//Send message to the queue.
 	public void SendMessage(MessageWrapper message, String exchangeName, String routingKey) throws IOException
 	{
-		channel.basicPublish(exchangeName, routingKey, null, message.getSerializedMessage().getBytes());		
+		bChannel.basicPublish(exchangeName, routingKey, null, message.getSerializedMessage().getBytes());		
 	}
+	
 			
 }
