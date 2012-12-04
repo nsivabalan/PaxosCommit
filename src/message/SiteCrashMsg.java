@@ -18,5 +18,16 @@ public class SiteCrashMsg extends MessageBase{
 	public void setType(Common.SiteCrashMsgType type) {
 		this.type = type;
 	}     
+	
+	@Override
+	public String toString() {
+		StringBuffer bf = new StringBuffer();
+		
+		bf.append("Received - " + this.getClass().getName() + " - " + this.type);
+		bf.append("Source - " + this.nodeid);
+		bf.append("\n");
+		
+		return bf.toString();
+	}
      
 }

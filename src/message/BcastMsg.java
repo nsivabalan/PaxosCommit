@@ -21,7 +21,8 @@ public class BcastMsg extends MessageBase{
 		this.gsn=gsn;
 		this.uid = uid;
 	}
-
+	
+	
 	public String getNodeid() {
 		return nodeid;
 	}
@@ -52,6 +53,20 @@ public class BcastMsg extends MessageBase{
 
 	public void setGsn(int gsn) {
 		this.gsn = gsn;
+	}
+	
+	
+	@Override
+	public String toString() {
+		StringBuffer bf = new StringBuffer();
+		
+		bf.append("Received - " + this.getClass().getName() + " - " + this.type);
+		bf.append("Source - " + this.nodeid);
+		bf.append("GSN - " + this.gsn);
+		bf.append("Data - " + this.data);
+		bf.append("\n");
+		
+		return bf.toString();
 	}
 
 }
