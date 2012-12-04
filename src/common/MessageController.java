@@ -27,10 +27,11 @@ public class MessageController {
 		this.channel.queueDeclare(this.queueName, true, false, false, null);
 	}
 	
-	public void DeclareExchange(String exchange, String exchangeType) throws IOException
+	public void DeclareExchange(String exchange, String exchangeType, Boolean bindQ) throws IOException
 	{
 		this.channel.exchangeDeclare(exchange, exchangeType);
-		this.channel.queueBind(this.queueName, exchange, this.queueName);
+		if (bindQ)
+			this.channel.queueBind(this.queueName, exchange, this.queueName);
 	}
 
 	public void InitializeConsumer() throws IOException

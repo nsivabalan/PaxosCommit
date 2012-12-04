@@ -17,6 +17,7 @@ import java.util.UUID;
 
 import common.Common;
 import common.Common.SiteCrashMsgType;
+import common.Triplet;
 import common.Tuple;
 import common.Common.PaxosLeaderState;
 import common.Common.State;
@@ -74,10 +75,10 @@ public class PaxosLeader extends Node{
 		this.paxosLeaderExchange = Common.PaxosLeaderExchange + this.nodeId;
 		this.tpcCoordinatorExchance = Common.TPCCoordinatorExchange + this.tpcCoordinatorId;
 
-		ArrayList<Tuple<String, String>> exchanges = new ArrayList<Tuple<String, String>>();
-		exchanges.add(new Tuple(Common.DirectMessageExchange, Common.directExchangeType));
-		exchanges.add(new Tuple(this.paxosLeaderExchange, Common.bcastExchangeType));
-		exchanges.add(new Tuple(this.tpcCoordinatorExchance, Common.bcastExchangeType));
+		ArrayList<Triplet<String, String, Boolean>> exchanges = new ArrayList<Triplet<String, String, Boolean>>();
+		exchanges.add(new Triplet(Common.DirectMessageExchange, Common.directExchangeType, true));
+		exchanges.add(new Triplet(this.paxosLeaderExchange, Common.bcastExchangeType, false));
+		exchanges.add(new Triplet(this.tpcCoordinatorExchance, Common.bcastExchangeType, true));
 
 		this.DeclareExchanges(exchanges);
 		this.InitializeConsumer();

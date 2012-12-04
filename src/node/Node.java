@@ -14,6 +14,7 @@ import common.Common;
 import common.MessageController;
 import common.Request;
 import common.Resource;
+import common.Triplet;
 import common.Tuple;
 
 public class Node {
@@ -46,12 +47,12 @@ public class Node {
 		LOGGER.addHandler(logFile);		
 	}	
 
-	public void DeclareExchanges( ArrayList<Tuple<String, String>> exchanges) throws IOException
+	public void DeclareExchanges( ArrayList<Triplet<String, String, Boolean>> exchanges) throws IOException
 	{
 		//Declare exchanges for the sender.
-		for(Tuple<String, String> exchange : exchanges)
+		for(Triplet<String, String, Boolean> exchange : exchanges)
 		{
-			this.messageController.DeclareExchange(exchange.x, exchange.y);
+			this.messageController.DeclareExchange(exchange.x, exchange.y, exchange.z);
 		}
 	}
 	

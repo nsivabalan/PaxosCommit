@@ -6,6 +6,7 @@ import java.util.Scanner;
 import message.ClientOpMsg;
 import common.Common;
 import common.MessageWrapper;
+import common.Triplet;
 import common.Tuple;
 
 public class Client extends Node implements Runnable{
@@ -16,8 +17,8 @@ public class Client extends Node implements Runnable{
 		super(nodeId, "");
 		this.paxosLeaderOneId=paxosLeaderOneId;
 		this.paxosLeaderTwoId=paxosLeaderTwoId;
-		ArrayList<Tuple<String, String>> exchanges = new ArrayList<Tuple<String, String>>();
-		exchanges.add(new Tuple(Common.DirectMessageExchange, Common.directExchangeType));
+		ArrayList<Triplet<String, String, Boolean>> exchanges = new ArrayList<Triplet<String, String, Boolean>>();
+		exchanges.add(new Triplet(Common.DirectMessageExchange, Common.directExchangeType, true));
 		this.DeclareExchanges(exchanges);
 		this.InitializeConsumer();
 	}

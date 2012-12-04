@@ -26,6 +26,7 @@ import common.Common.State;
 import common.MessageWrapper;
 import common.RMQReceiver;
 import common.RMQSender_Old;
+import common.Triplet;
 import common.Tuple;
 
 public class Acceptor extends Node {
@@ -51,9 +52,9 @@ public class Acceptor extends Node {
 		this.paxosLeaderId = paxosLeaderId;
 		this.paxosLeaderExchange = Common.PaxosLeaderExchange + this.paxosLeaderId;
 
-		ArrayList<Tuple<String, String>> exchanges = new ArrayList<Tuple<String, String>>();
-		exchanges.add(new Tuple(Common.DirectMessageExchange, Common.directExchangeType));
-		exchanges.add(new Tuple(this.paxosLeaderExchange, Common.bcastExchangeType));
+		ArrayList<Triplet<String, String, Boolean>> exchanges = new ArrayList<Triplet<String, String, Boolean>>();
+		exchanges.add(new Triplet(Common.DirectMessageExchange, Common.directExchangeType, true));
+		exchanges.add(new Triplet(this.paxosLeaderExchange, Common.bcastExchangeType, false));
 		this.DeclareExchanges(exchanges);
 		this.InitializeConsumer();
 

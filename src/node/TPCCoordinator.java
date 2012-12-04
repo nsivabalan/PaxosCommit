@@ -16,6 +16,7 @@ import java.sql.Timestamp;
 
 import common.Common;
 import common.Common.ClientOPMsgType;
+import common.Triplet;
 import common.Tuple;
 import common.Common.SiteCrashMsgType;
 import common.Common.TPCState;
@@ -68,9 +69,9 @@ public class TPCCoordinator extends Node {
 		//Initialize the Message Coordinator Exchanges.
 		this.TwoPCExchange = Common.TPCCoordinatorExchange + this.nodeId;
 
-		ArrayList<Tuple<String, String>> exchanges = new ArrayList<Tuple<String, String>>();
-		exchanges.add(new Tuple(Common.DirectMessageExchange, Common.directExchangeType));
-		exchanges.add(new Tuple(this.TwoPCExchange, Common.bcastExchangeType));
+		ArrayList<Triplet<String, String, Boolean>> exchanges = new ArrayList<Triplet<String, String, Boolean>>();
+		exchanges.add(new Triplet(Common.DirectMessageExchange, Common.directExchangeType, true));
+		exchanges.add(new Triplet(this.TwoPCExchange, Common.bcastExchangeType, false));
 
 		this.DeclareExchanges(exchanges);
 		this.InitializeConsumer();
