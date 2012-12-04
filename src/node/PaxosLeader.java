@@ -213,8 +213,6 @@ public class PaxosLeader extends Node{
 	{
 		if(msg.getType()==Common.ClientOPMsgType.APPEND)
 		{
-			System.out.println("Processing Client Append Request.");
-			System.out.println("msg is " + Common.Serialize(msg));
 			this.ProcessAppendRequest(msg.getUid(), msg.getData(), msg.getNodeid());
 		}
 		else
@@ -258,7 +256,7 @@ public class PaxosLeader extends Node{
 	public void ProcessCommitRequest(UUID uid, int gsn) throws IOException
 	{
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
-		System.out.println(" Transaction Status is " +temp.toString());
+		
 		temp.gsn = gsn;
 		temp.state = Common.PaxosLeaderState.COMMIT;
 		this.uidTransactionStatusMap.put(uid, temp);

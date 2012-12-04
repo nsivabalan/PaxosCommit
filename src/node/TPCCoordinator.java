@@ -178,8 +178,8 @@ public class TPCCoordinator extends Node {
 				return;
 			}
 			temp.paxosLeaderListPrepare.add(nodeid);
-			System.out.println("Size = "+ temp.paxosLeaderListPrepare.size());
-			System.out.println(temp.paxosLeaderListPrepare.toString());
+			
+
 			if (temp.paxosLeaderListPrepare.size() == Common.NoPaxosLeaders)
 			{
 				System.out.println("Preparing Commit");
