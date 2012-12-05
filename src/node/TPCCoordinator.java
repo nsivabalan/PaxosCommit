@@ -100,7 +100,7 @@ public class TPCCoordinator extends Node {
 
 					//Print msg
 					System.out.println("Received " + msg);
-					LOGGER.log(Level.FINE, new String("Received "+msg));
+					this.AddLogEntry("Received - "+msg, Level.INFO);
 					
 					if (msg.getType() == TwoPCMsgType.INFO)
 						ProcessInfoRequest(msg.getUID(), msg.getNodeid(), msg.getClientRoutingKey());
@@ -117,8 +117,8 @@ public class TPCCoordinator extends Node {
 					SiteCrashMsg msg = (SiteCrashMsg) msgwrap.getDeSerializedInnerMessage();
 					
 					//Print msg
-					System.out.println("Received " + msg);
-					LOGGER.log(Level.FINE, new String("Received "+msg));
+					System.out.println("Received " + msg);					
+					this.AddLogEntry("Received - "+msg, Level.INFO);
 					
 					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
 					{
@@ -154,8 +154,11 @@ public class TPCCoordinator extends Node {
 						System.out.println("UID -" +uid);
 						System.out.println("Aborting Transaction. Timed out.");
 												
-						LOGGER.log(Level.FINE, new String("UID - "+uid));
-						LOGGER.log(Level.FINE, new String("Aborting Transaction (Timed out)."));						
+						StringBuffer sb = new StringBuffer();
+						sb.append("\nUID - "+uid);
+						sb.append("\nAborting Transaction (Timed out)");
+						this.AddLogEntry(sb.toString(), Level.WARNING);
+						
 					}				
 				}
 				if(temp.state == TPCState.COMMIT)
@@ -181,8 +184,10 @@ public class TPCCoordinator extends Node {
 			System.out.println("UID - "+uid);
 			System.out.println("Processing Info Request");
 						
-			LOGGER.log(Level.FINE, new String("UID = "+uid));
-			LOGGER.log(Level.FINE, new String("Processing INFO Request" + uid));
+			StringBuffer sb = new StringBuffer();
+			sb.append("\nUID - " + uid);
+			sb.append("\nProcessing INFO request.");
+			this.AddLogEntry(sb.toString(), Level.INFO);
 			
 			TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
 			if(temp.state == TPCState.ABORT)
@@ -196,7 +201,10 @@ public class TPCCoordinator extends Node {
 			{
 				
 				System.out.println("Preparing Commit");
-				LOGGER.log(Level.FINE, new String("Initiating Commit"));
+				StringBuffer sb1 = new StringBuffer();
+				sb1.append("\nUID - " + uid);
+				sb1.append("\nInitiating Commit.");
+				this.AddLogEntry(sb1.toString(), Level.INFO);
 				
 				temp.state = TPCState.COMMIT;
 				int gsn = this.getNewGSN();
@@ -297,9 +305,8 @@ public class TPCCoordinator extends Node {
 		TwoPCMsg commitmsg = new TwoPCMsg(this.nodeId, Common.TwoPCMsgType.COMMIT, uid, temp.gsn);
 
 		System.out.println("UID - " + uid);
-		System.out.println("Sending Commit Message. "+commitmsg);
-		LOGGER.log(Level.FINE, new String("UID = "+uid));
-		LOGGER.log(Level.FINE, new String("Sent - "+commitmsg));
+		System.out.println("Sending Commit Message. "+commitmsg);		
+		this.AddLogEntry("Sent - "+commitmsg, Level.INFO);
 		
 		SendTPCMessage(commitmsg);
 	}
@@ -309,7 +316,7 @@ public class TPCCoordinator extends Node {
 	{
 		//Print msg
 		System.out.println("Sent " + msg);
-		LOGGER.log(Level.FINE, new String("Sent - "+msg));
+		this.AddLogEntry("Sent - "+msg, Level.INFO);
 		
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.TwoPCExchange, "");
