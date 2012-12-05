@@ -223,7 +223,9 @@ public class Acceptor extends Node {
 			ProcessAppendToFile(uid);
 			
 			while(true)
-			{							
+			{						
+				if (queue.isEmpty())
+					break;
 				Tuple<Integer,UUID> temptuple=queue.peek();
 				if(temptuple.x==this.lastCommitGSN+1)
 				{
