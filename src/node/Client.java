@@ -66,6 +66,7 @@ public class Client extends Node implements Runnable{
 				this.sendClientOpMsg(msg1, this.paxosLeaderOneId);				
 				this.sendClientOpMsg(msg2, this.paxosLeaderTwoId);
 				System.out.println(" Created new request with uid - " + uid);
+				this.run();	
 			}
 			else if(requesttype.equals("Crash"))
 			{
