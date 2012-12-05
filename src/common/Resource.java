@@ -22,6 +22,15 @@ public class Resource {
 	{
 		this.fileName = fileName;
 		this.file = new File(path + "/" + fileName);
+		if(!this.file.createNewFile())
+		{
+			//File Exists.
+		}
+		else
+		{
+			System.out.println("Created File " + fileName);
+		}
+		
 		this.fileReader = new FileReader(this.file);
 		
 	}

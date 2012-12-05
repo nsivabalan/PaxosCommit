@@ -24,7 +24,7 @@ public class Deploy {
 		Common.RMQServer = "ec2-54-234-31-251.compute-1.amazonaws.com";
 		//Common.RMQServer = "ec2-54-242-187-230.compute-1.amazonaws.com";
 		
-		Common.FilePath = "/home/sivabalan/deploy";
+		Common.FilePath = "/home/anduril/deploy";
 		
 		String deployNodeId = args[0];
 		String deployNodeType = args[1];
