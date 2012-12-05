@@ -1,5 +1,6 @@
 #!/bin/bash
-cd "$HOME/workspace/Paxos Commit/src"
+
+cd "$HOME/$PAXOS/src"
 
 rm -rf node/*.class
 rm -rf message/*.class
