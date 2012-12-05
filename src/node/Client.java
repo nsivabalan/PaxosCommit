@@ -96,16 +96,15 @@ public class Client extends Node implements Runnable{
 	}
 
 	public void sendClientOpMsg(ClientOpMsg msg, String destid) throws IOException
-	{
-		this.LOGGER.log(Level.FINE, new String("Sent "+msg));
+	{		
 		this.AddLogEntry("Sent " + msg, Level.INFO);
 		
 		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);		
 	}
 
 	public void sendSiteCrashMsg(SiteCrashMsg msg, String destid) throws IOException
-	{
-		this.LOGGER.log(Level.FINE, new String("Sent "+msg));
+	{		
+		this.AddLogEntry("Sent " + msg, Level.INFO);
 		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);
 	}
 
@@ -154,8 +153,8 @@ public class Client extends Node implements Runnable{
 
 	public void ProcessClientResponseData(ClientOpMsg msg)
 	{
-		System.out.println(" Received " + msg);
-		this.LOGGER.log(Level.FINE, new String("Received - "+msg));
+		System.out.println(" Received " + msg);		
+		this.AddLogEntry("Received " + msg, Level.INFO);
 	}
 
 }
