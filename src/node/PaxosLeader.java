@@ -19,6 +19,7 @@ import common.Common;
 import common.Common.SiteCrashMsgType;
 import common.Triplet;
 import common.Tuple;
+import common.Common.ClientOPMsgType;
 import common.Common.PaxosLeaderState;
 import common.Common.State;
 import common.Common.TwoPCMsgType;
@@ -191,10 +192,18 @@ public class PaxosLeader extends Node{
 		else
 		{
 			//TODO: Respond with read of file.
-			this.localResource.ReadResource(this.readLineNumber);
+			String data=this.localResource.ReadResource(this.readLineNumber);
+			ClientOpMsg read_msg = new ClientOpMsg(this.nodeId, ClientOPMsgType.READ_RESPONSE, data, msg.getUid());
+			SendClientMessage(msg, msg.getNodeid());
 		}		
 	}
 
+	public void SendClientMessage(ClientOpMsg msg, String routingKey) throws IOException
+	{
+		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
+		this.messageController.SendMessage(msgwrap, Common.DirectMessageExchange, routingKey);
+	}
+	
 	//Process New Append Request from Client
 	public void ProcessAppendRequest(UUID uid, String data, String clientRoutingKey) throws IOException 
 	{
