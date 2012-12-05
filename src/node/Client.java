@@ -81,11 +81,22 @@ public class Client extends Node implements Runnable{
 				if(sitecrashflag==1)
 				{
 					SiteCrashMsg sitecrashmsg=new SiteCrashMsg(this.nodeId, SiteCrashMsgType.CRASH);
+					
+					StringBuffer sb = new StringBuffer();
+					sb.append("Node - "+sitecrashid);
+					sb.append("Sent - "+ sitecrashmsg);
+					this.AddLogEntry(sb.toString(), Level.INFO);
+					
 					sendSiteCrashMsg(sitecrashmsg, sitecrashid);
 				}
 				else if(sitecrashflag ==2)
 				{
 					SiteCrashMsg sitecrashmsg=new SiteCrashMsg(this.nodeId, SiteCrashMsgType.RECOVER);
+					
+					StringBuffer sb = new StringBuffer();
+					sb.append("Node - "+sitecrashid);
+					sb.append("Sent - "+ sitecrashmsg);
+					this.AddLogEntry(sb.toString(), Level.INFO);
 					
 					sendSiteCrashMsg(sitecrashmsg, sitecrashid);
 				}				
@@ -103,8 +114,7 @@ public class Client extends Node implements Runnable{
 	}
 
 	public void sendSiteCrashMsg(SiteCrashMsg msg, String destid) throws IOException
-	{		
-		this.AddLogEntry("Sent " + msg, Level.INFO);
+	{	
 		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);
 	}
 
@@ -145,6 +155,8 @@ public class Client extends Node implements Runnable{
 			if(curtime.after(Common.getUpdatedTimestamp(startTime, Common.commitabort_timeout+2)))
 			{
 				System.out.println("Transaction aborted. Timed out. ");
+				this.AddLogEntry("Transaction aborted. Timed out", Level.INFO);
+				
 				break;
 			}
 		}		

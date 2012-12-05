@@ -46,7 +46,8 @@ public class Node {
 		logFile = new FileHandler(Common.FilePath+"/"+this.nodeId+".log", true);
 		logFile.setFormatter(new SimpleFormatter());
 		LOGGER.setLevel(Level.INFO); //Sets the default level if not provided.		
-		LOGGER.addHandler(logFile);		
+		LOGGER.addHandler(logFile);
+		LOGGER.setUseParentHandlers(false);
 	}	
 
 	public void DeclareExchanges( ArrayList<Triplet<String, String, Boolean>> exchanges) throws IOException
