@@ -113,7 +113,7 @@ public class PaxosLeader extends Node{
 
 					//Print msg
 					System.out.println("Received " + msg);
-					LOGGER.log(Level.FINE, new String("Received " + msg));
+					this.AddLogEntry(new String("Received "+msg), Level.INFO);
 
 					ProcessClientMessageData(msg);
 				}
@@ -121,12 +121,11 @@ public class PaxosLeader extends Node{
 				else if(msgwrap.getmessageclass() == PaxosMsg.class && this.NodeState == State.ACTIVE)
 				{
 
-
 					PaxosMsg msg = (PaxosMsg) msgwrap.getDeSerializedInnerMessage();
 
 					//Print msg
 					System.out.println("Received " + msg);
-					LOGGER.log(Level.FINE, new String("Received " + msg));
+					this.AddLogEntry("Received "+msg, Level.INFO);
 
 					TransactionStatus temp = uidTransactionStatusMap.get(msg.getUID());
 
@@ -146,7 +145,7 @@ public class PaxosLeader extends Node{
 
 					//Print msg
 					System.out.println("Received " + msg);
-					LOGGER.log(Level.FINE, new String("Received " + msg));
+					this.AddLogEntry("Received "+msg, Level.INFO);
 
 					if (msg.getType() == TwoPCMsgType.COMMIT)
 					{						
@@ -166,7 +165,7 @@ public class PaxosLeader extends Node{
 
 					//Print msg
 					System.out.println("Received " + msg);
-					LOGGER.log(Level.FINE, new String("Received " + msg));
+					this.AddLogEntry("Received "+msg, Level.INFO);
 
 					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
 					{
@@ -237,8 +236,10 @@ public class PaxosLeader extends Node{
 				
 		System.out.println("UID - "+uid);
 		System.out.println("Acceptor List " + temp.acceptorListPrepare.toString());
-		LOGGER.log(Level.FINE,new String("UID - "+uid));
-		LOGGER.log(Level.FINE, new String("Acceptor List " + temp.acceptorListPrepare.toString()));
+		StringBuilder sb=new StringBuilder();
+		sb.append("UID - "+uid);
+		sb.append("\nAcceptor List " + temp.acceptorListPrepare.toString());
+		this.AddLogEntry(sb.toString(), Level.INFO);
 		
 		if (temp.acceptorListPrepare.size() >= Common.GetQuorumSize() && temp.state == PaxosLeaderState.PREPARE) 
 		{
@@ -354,7 +355,7 @@ public class PaxosLeader extends Node{
 	{		
 		//Print msg
 		System.out.println("Sent " + msg);
-		LOGGER.log(Level.FINE, new String("Sent " + msg));
+		this.AddLogEntry("Sent "+msg, Level.INFO);
 
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, Common.DirectMessageExchange, this.tpcCoordinatorId);
@@ -365,7 +366,7 @@ public class PaxosLeader extends Node{
 	{		
 		//Print msg
 		System.out.println("Sent " + msg);
-		LOGGER.log(Level.FINE, new String("Sent " + msg));
+		this.AddLogEntry("Sent "+msg, Level.INFO);
 
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.paxosLeaderExchange, "");
