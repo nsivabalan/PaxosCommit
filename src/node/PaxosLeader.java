@@ -14,6 +14,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import common.Common;
 import common.Common.SiteCrashMsgType;
@@ -112,6 +113,7 @@ public class PaxosLeader extends Node{
 
 					//Print msg
 					System.out.println("Received " + msg);
+					LOGGER.log(Level.FINE, new String("Received " + msg));
 
 					ProcessClientMessageData(msg);
 				}
@@ -124,6 +126,7 @@ public class PaxosLeader extends Node{
 
 					//Print msg
 					System.out.println("Received " + msg);
+					LOGGER.log(Level.FINE, new String("Received " + msg));
 
 					TransactionStatus temp = uidTransactionStatusMap.get(msg.getUID());
 
@@ -143,6 +146,7 @@ public class PaxosLeader extends Node{
 
 					//Print msg
 					System.out.println("Received " + msg);
+					LOGGER.log(Level.FINE, new String("Received " + msg));
 
 					if (msg.getType() == TwoPCMsgType.COMMIT)
 					{						
@@ -162,6 +166,7 @@ public class PaxosLeader extends Node{
 
 					//Print msg
 					System.out.println("Received " + msg);
+					LOGGER.log(Level.FINE, new String("Received " + msg));
 
 					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
 					{
@@ -191,10 +196,7 @@ public class PaxosLeader extends Node{
 		}
 		else
 		{
-			//TODO: Respond with read of file.
-			
-			this.ProcessReadRequest(msg.getUid(), msg.getNodeid());		
-			
+			this.ProcessReadRequest(msg.getUid(), msg.getNodeid());					
 		}		
 	}
 
@@ -220,12 +222,11 @@ public class PaxosLeader extends Node{
 	//Process New Read Request from Client
 	public void ProcessReadRequest(UUID uid, String clientRequestKey) throws IOException
 	{
-		//TODO : Implement file line number logic.
 		String data=this.localResource.ReadResource(this.readLineNumber);
 		ClientOpMsg read_msg = new ClientOpMsg(this.nodeId, ClientOPMsgType.READ_RESPONSE, data, uid);
 		SendClientMessage(read_msg, clientRequestKey);
-		System.out.println("Sent Read Data");
-		
+		System.out.println("Sent Read Data for UID - "+uid);		
+		LOGGER.log(Level.FINE, new String("Sent Read Data for UID - "+uid));
 	}
 
 	//Process Ack from Acceptor
@@ -234,8 +235,10 @@ public class PaxosLeader extends Node{
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
 		temp.acceptorListPrepare.add(nodeId);
 				
+		System.out.println("UID - "+uid);
 		System.out.println("Acceptor List " + temp.acceptorListPrepare.toString());
-		//System.out.println("Quorum size " + Common.GetQuorumSize());
+		LOGGER.log(Level.FINE,new String("UID - "+uid));
+		LOGGER.log(Level.FINE, new String("Acceptor List " + temp.acceptorListPrepare.toString()));
 		
 		if (temp.acceptorListPrepare.size() >= Common.GetQuorumSize() && temp.state == PaxosLeaderState.PREPARE) 
 		{
@@ -270,11 +273,6 @@ public class PaxosLeader extends Node{
 	//method used to process abort msg from the two phase coordinator
 	public void ProcessAbortRequest(UUID uid) throws IOException
 	{
-		/*
-		 * 0. Broadcast Message to all Acceptors.
-		 * 1. Change State to Abort.
-		 */
-
 		//propagate info to all acceptors
 		TransactionStatus temp = uidTransactionStatusMap.get(uid);
 		temp.state = Common.PaxosLeaderState.ABORT;
@@ -334,15 +332,7 @@ public class PaxosLeader extends Node{
 				break;
 			
 			Entry<UUID, TransactionStatus> e =  this.uidCommitAckStatusSet.first();
-			
-			/*
-			UUID uidtemp = e.getKey();
-			TransactionStatus tstemp = e.getValue();
-			
-			System.out.println(uidtemp);
-			System.out.println(tstemp.clientRoutingKey + " " + tstemp.data);
-			*/
-			
+					
 			if(e.getValue().gsn == -1 )
 				this.uidCommitAckStatusSet.remove(e);
 
@@ -364,6 +354,7 @@ public class PaxosLeader extends Node{
 	{		
 		//Print msg
 		System.out.println("Sent " + msg);
+		LOGGER.log(Level.FINE, new String("Sent " + msg));
 
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, Common.DirectMessageExchange, this.tpcCoordinatorId);
@@ -374,6 +365,7 @@ public class PaxosLeader extends Node{
 	{		
 		//Print msg
 		System.out.println("Sent " + msg);
+		LOGGER.log(Level.FINE, new String("Sent " + msg));
 
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.paxosLeaderExchange, "");
