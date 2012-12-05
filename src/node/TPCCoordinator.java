@@ -216,7 +216,7 @@ public class TPCCoordinator extends Node {
 			temp.timeout=new Timestamp(new Date().getTime());
 			temp.gsn=gsn;
 			this.uidTransactionStatusMap.put(uid, temp);
-			ClientOpMsg msg = new ClientOpMsg(nodeid, ClientOPMsgType.APPEND_RESPONSE, "Committed", uid);
+			ClientOpMsg msg = new ClientOpMsg(this.nodeId, ClientOPMsgType.APPEND_RESPONSE, "Committed", uid);
 			SendClientMessage(msg, temp.clientRoutingKey);			
 		}
 		else if (temp.paxosLeaderListCommit.size() == Common.NoPaxosLeaders && temp.state != TPCState.COMMIT_ACK) 
@@ -240,7 +240,7 @@ public class TPCCoordinator extends Node {
 
 		if (temp.paxosLeaderListCommit.size() == 1 && temp.state != TPCState.ABORT_ACK)
 		{	
-			ClientOpMsg msg = new ClientOpMsg(nodeid, ClientOPMsgType.APPEND_RESPONSE, "Aborted", uid);
+			ClientOpMsg msg = new ClientOpMsg(this.nodeId, ClientOPMsgType.APPEND_RESPONSE, "Aborted", uid);
 			SendClientMessage(msg, temp.clientRoutingKey);
 		}
 		else if (temp.paxosLeaderListCommit.size() == Common.NoPaxosLeaders && temp.state != TPCState.ABORT_ACK) 
@@ -263,8 +263,15 @@ public class TPCCoordinator extends Node {
 	//we just know the lsn from only one PL
 	public void SendAbortMessage(UUID uid,String nodeid) throws IOException
 	{
+		TransactionStatus temp=uidTransactionStatusMap.get(uid);
+		temp.state=TPCState.ABORT;
+		this.uidTransactionStatusMap.put(uid, temp);
+		
 		TwoPCMsg abortmsg = new TwoPCMsg(this.nodeId, Common.TwoPCMsgType.ABORT,uid);
-		SendTPCMessage(abortmsg);
+		SendTPCMessage(abortmsg);		
+		
+		ClientOpMsg msg = new ClientOpMsg(this.nodeId, ClientOPMsgType.ABORT, "Aborted", uid);
+		SendClientMessage(msg, temp.clientRoutingKey);
 	}
 
 	//method used to send commit msg after receiving info msg from both the paxos leaders
