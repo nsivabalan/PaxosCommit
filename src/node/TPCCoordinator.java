@@ -211,7 +211,7 @@ public class TPCCoordinator extends Node {
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
 		temp.paxosLeaderListCommit.add(nodeid);
 
-		if (temp.paxosLeaderListCommit.size() == 1)
+		if (temp.paxosLeaderListCommit.size() == 1 && temp.state != TPCState.COMMIT_ACK)
 		{	
 			temp.timeout=new Timestamp(new Date().getTime());
 			temp.gsn=gsn;
@@ -219,7 +219,7 @@ public class TPCCoordinator extends Node {
 			ClientOpMsg msg = new ClientOpMsg(nodeid, ClientOPMsgType.APPEND_RESPONSE, "Committed", uid);
 			SendClientMessage(msg, temp.clientRoutingKey);			
 		}
-		else if (temp.paxosLeaderListCommit.size() == Common.NoPaxosLeaders) 
+		else if (temp.paxosLeaderListCommit.size() == Common.NoPaxosLeaders && temp.state != TPCState.COMMIT_ACK) 
 		{
 			temp.state = TPCState.COMMIT_ACK;
 			temp.gsn=gsn;
@@ -238,12 +238,12 @@ public class TPCCoordinator extends Node {
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
 		temp.paxosLeaderListCommit.add(nodeid);
 
-		if (temp.paxosLeaderListCommit.size() == 1)
+		if (temp.paxosLeaderListCommit.size() == 1 && temp.state != TPCState.ABORT_ACK)
 		{	
 			ClientOpMsg msg = new ClientOpMsg(nodeid, ClientOPMsgType.APPEND_RESPONSE, "Aborted", uid);
 			SendClientMessage(msg, temp.clientRoutingKey);
 		}
-		else if (temp.paxosLeaderListCommit.size() == Common.NoPaxosLeaders) 
+		else if (temp.paxosLeaderListCommit.size() == Common.NoPaxosLeaders && temp.state != TPCState.ABORT_ACK) 
 		{
 			temp.state = TPCState.ABORT_ACK;
 			this.uidTransactionStatusMap.put(uid, temp);
