@@ -315,9 +315,6 @@ public class PaxosLeader extends Node{
 
 		this.uidCommitAckStatusSet.addAll(this.uidTransactionStatusMap.entrySet());
 		
-		System.out.println("\nUID Transaction Status Map " + this.uidTransactionStatusMap);		
-		System.out.println("\nUID Transaction Status Set " + this.uidCommitAckStatusSet);
-		
 		while(true)
 		{
 			if(this.uidCommitAckStatusSet.isEmpty())
