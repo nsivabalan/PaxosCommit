@@ -46,7 +46,8 @@ public class Client extends Node implements Runnable{
 				System.out.println("Enter a dest id(1 or 2) ");
 				destid = in.nextInt();
 				UUID uid = java.util.UUID.randomUUID();
-				msg= new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.READ, (destid==1)?this.paxosLeaderOneId:this.paxosLeaderTwoId, uid);
+				
+				msg= new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.READ, "READ", uid);
 				this.sendClientOpMsg(msg, (destid==1)?this.paxosLeaderOneId:this.paxosLeaderTwoId);
 				System.out.println(" Created new request with uid - " + uid);
 			}

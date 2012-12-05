@@ -51,7 +51,7 @@ public class ClientOpMsg extends MessageBase{
 	public String toString() {
 		StringBuilder bf = new StringBuilder();
 		
-		//bf.append("\n" + this.getClass().getName() + " - " + this.type);
+		bf.append("\n" + this.getClass().getName() + " - " + this.type);
 		bf.append("\n Source - " + this.nodeid);
 		bf.append("\n UID - " + this.uid);		
 		bf.append("\n Data - " + this.data);
