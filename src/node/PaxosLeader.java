@@ -314,10 +314,25 @@ public class PaxosLeader extends Node{
 		this.uidTransactionStatusMap.put(uid, temp);
 
 		this.uidCommitAckStatusSet.addAll(this.uidTransactionStatusMap.entrySet());
-
+		
+		System.out.println("\nUID Transaction Status Map " + this.uidTransactionStatusMap);		
+		System.out.println("\nUID Transaction Status Set " + this.uidCommitAckStatusSet);
+		
 		while(true)
 		{
+			if(this.uidCommitAckStatusSet.isEmpty())
+				break;
+			
 			Entry<UUID, TransactionStatus> e =  this.uidCommitAckStatusSet.first();
+			
+			/*
+			UUID uidtemp = e.getKey();
+			TransactionStatus tstemp = e.getValue();
+			
+			System.out.println(uidtemp);
+			System.out.println(tstemp.clientRoutingKey + " " + tstemp.data);
+			*/
+			
 			if(e.getValue().gsn == -1 )
 				this.uidCommitAckStatusSet.remove(e);
 
