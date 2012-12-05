@@ -222,7 +222,7 @@ public class PaxosLeader extends Node{
 		temp.acceptorListPrepare.add(nodeId);
 				
 		System.out.println("Acceptor List " + temp.acceptorListPrepare.toString());
-		System.out.println("Quorum size " + Common.GetQuorumSize());
+		//System.out.println("Quorum size " + Common.GetQuorumSize());
 		
 		if (temp.acceptorListPrepare.size() >= Common.GetQuorumSize() && temp.state == PaxosLeaderState.PREPARE) 
 		{

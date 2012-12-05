@@ -62,6 +62,7 @@ public class BcastMsg extends MessageBase{
 		
 		bf.append("\n" + this.getClass().getName() + " - " + this.type);
 		bf.append("\n Source - " + this.nodeid);
+		bf.append("\n UUID - " + this.uid);
 		bf.append("\n GSN - " + this.gsn);
 		bf.append("\n Data - " + this.data);
 		bf.append("\n");

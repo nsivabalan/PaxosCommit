@@ -21,8 +21,8 @@ public class Deploy {
 	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 		// TODO Auto-generated method stub
 		
-		//Common.RMQServer = "localhost";
-		Common.RMQServer = "ec2-54-242-187-230.compute-1.amazonaws.com";
+		Common.RMQServer = "localhost";
+		//Common.RMQServer = "ec2-54-242-187-230.compute-1.amazonaws.com";
 		
 		Common.FilePath = "/home/anduril/deploy";
 		

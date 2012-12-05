@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import com.rabbitmq.client.*;
 
-public class MessageController {
+public class MessageController  {
 	//RMQ Members.
 	private ConnectionFactory factory;
 	private Connection connection;
@@ -27,7 +27,7 @@ public class MessageController {
 		bChannel = connection.createChannel();
 		
 		//Initialize Node queue.
-		this.channel.queueDeclare(this.queueName, true, false, false, null);
+		this.channel.queueDeclare(this.queueName, false, false, false, null);
 	}
 	
 	public void DeclareExchange(String exchange, String exchangeType, Boolean bindQ) throws IOException
@@ -97,5 +97,6 @@ public class MessageController {
 		bChannel.basicPublish(exchangeName, routingKey, null, message.getSerializedMessage().getBytes());		
 	}
 	
-			
+	
+	
 }

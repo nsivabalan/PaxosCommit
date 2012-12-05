@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -95,7 +96,7 @@ public class Acceptor extends Node {
 					if(msg.getType() == PaxosMsgType.ACCEPT)
 						ProcessAcceptMessage(msg.getUID(), msg.getData());
 
-					else if (msg.getType() == PaxosMsgType.COMMIT)
+					else if (msg.getType() == PaxosMsgType.COMMIT && msg.getNodeid().equalsIgnoreCase(this.paxosLeaderId))
 						ProcessCommitMessage(msg.getUID(), msg.getGsn());
 
 					else if (msg.getType() == PaxosMsgType.ABORT)
@@ -124,7 +125,7 @@ public class Acceptor extends Node {
 			}
 			
 			//send bcast msgs for timeout transactions
-			/*itr=uidTransactionStatusMap.keySet().iterator();
+			itr=uidTransactionStatusMap.keySet().iterator();
 			while(itr.hasNext())
 			{
 				UUID uid=itr.next();
@@ -137,11 +138,12 @@ public class Acceptor extends Node {
 					if(curtime.after(Common.getUpdatedTimestamp(temp.timeout, Common.commitabort_timeout)))
 					{
 						temp.timeout=new Timestamp(new Date().getTime());
+						SendCommitMessage(uid);
 						this.uidTransactionStatusMap.put(uid,temp);
-						SendCommitMessage(uid);				
+										
 					}
 				}
-			}*/
+			}
 			
 		}		
 	}
@@ -154,7 +156,7 @@ public class Acceptor extends Node {
 		temp.data = data;
 		temp.state = AcceptorState.ACCEPT;
 		temp.timeout=new Timestamp(new Date().getTime());
-		
+		temp.Acceptors=new HashSet<String>();
 		this.uidTransactionStatusMap.put(uid, temp);
 
 		PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACK, uid);
@@ -163,6 +165,7 @@ public class Acceptor extends Node {
 
 	public void SendMessageToPaxosLeader(PaxosMsg msg) throws IOException
 	{	
+		System.out.println("Sent " + msg);
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		messageController.SendMessage(msgwrap, Common.DirectMessageExchange, this.paxosLeaderId);
 	}
@@ -181,6 +184,8 @@ public class Acceptor extends Node {
 		PaxosMsg msg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.ACK, uid);
 		this.SendMessageToPaxosLeader(msg);		
 	}
+	
+	
 
 	//method used to process abort msg from paxos leader
 	public void ProcessAbortMessage(UUID uid)
@@ -218,11 +223,12 @@ public class Acceptor extends Node {
 	public void SendCommitMessage(UUID uid) throws IOException
 	{
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);		
-		PaxosMsg commitmsg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.COMMIT, uid, temp.gsn);
-		SendPaxosMessage(commitmsg);
+		//PaxosMsg commitmsg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.COMMIT, uid, temp.gsn);
+		BcastMsg bcastmsg=new BcastMsg(this.nodeId, BcastMsgType.COMMIT_ACK, temp.gsn,uid);
+		SendBcastMessage(bcastmsg);
 	}
 
-	public void SendPaxosMessage(PaxosMsg msg) throws IOException
+	public void SendBcastMessage(BcastMsg msg) throws IOException
 	{
 		//Print msg
 		System.out.println("Sent " + msg);
@@ -236,9 +242,10 @@ public class Acceptor extends Node {
 	{
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);		
 		temp.Acceptors.add(nodeid);
-
+		System.out.println("Acceptor List (commit ack) " + temp.Acceptors.toString());
 		if(temp.Acceptors.size()== Common.NoAcceptors)
 		{			
+			System.out.println(" total no of acceptors reached ");
 			temp.state=AcceptorState.COMMIT_ACK;
 			this.uidTransactionStatusMap.put(uid, temp);
 		}
