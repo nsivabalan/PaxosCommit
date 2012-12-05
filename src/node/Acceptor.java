@@ -100,7 +100,7 @@ public class Acceptor extends Node {
 					
 					//Print msg
 					System.out.println("Received " + msg);
-					LOGGER.log(Level.FINE, new String("Received" + msg));
+					this.AddLogEntry("Received "+msg, Level.INFO);
 					
 					if(msg.getType() == BcastMsgType.COMMIT_ACK)
 						ProcessCommitAckMessage(msg.getUID(), msg.getGsn(), msg.getNodeid(),msg.getData());
@@ -115,7 +115,7 @@ public class Acceptor extends Node {
 
 					//Print msg
 					System.out.println("Received " + msg);
-					LOGGER.log(Level.FINE, new String("Received" + msg));
+					this.AddLogEntry("Received "+msg, Level.INFO);
 					
 					if(msg.getType() == PaxosMsgType.ACCEPT)
 						ProcessAcceptMessage(msg.getUID(), msg.getData());
@@ -132,7 +132,7 @@ public class Acceptor extends Node {
 					
 					//Print msg
 					System.out.println("Received " + msg);
-					LOGGER.log(Level.FINE, new String("Received" + msg));
+					this.AddLogEntry("Received "+msg, Level.INFO);
 					
 					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
 					{
@@ -164,8 +164,7 @@ public class Acceptor extends Node {
 					{
 						temp.timeout=new Timestamp(new Date().getTime());
 						BcastCommitMessage(uid);
-						this.uidTransactionStatusMap.put(uid,temp);
-										
+						this.uidTransactionStatusMap.put(uid,temp);										
 					}
 				}
 			}
@@ -191,7 +190,7 @@ public class Acceptor extends Node {
 	public void SendMessageToPaxosLeader(PaxosMsg msg) throws IOException
 	{	
 		System.out.println("Sent " + msg);
-		LOGGER.log(Level.FINE, new String("Sent" + msg));
+		this.AddLogEntry("Sent "+msg, Level.INFO);
 		
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		messageController.SendMessage(msgwrap, Common.DirectMessageExchange, this.paxosLeaderId);
@@ -253,6 +252,7 @@ public class Acceptor extends Node {
 
 	public void ProcessAppendToFile(UUID uid)
 	{
+		this.AddLogEntry("Appending to file - "+uid, Level.INFO);
 		this.localResource.AppendtoResource(this.uidTransactionStatusMap.get(uid).data);
 		this.lastCommitGSN += 1;
 	}
@@ -270,7 +270,7 @@ public class Acceptor extends Node {
 	{
 		//Print msg
 		System.out.println("Sent " + msg);
-		LOGGER.log(Level.FINE, new String("Sent" + msg));
+		this.AddLogEntry("Sent "+msg, Level.INFO);
 
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.paxosLeaderExchange, "");	
@@ -298,8 +298,10 @@ public class Acceptor extends Node {
 		System.out.println("UID - "+uid);
 		System.out.println("Acceptor List (Commit ACK) - " + temp.Acceptors.toString());
 		
-		LOGGER.log(Level.FINE, new String("UID - "+uid));
-		LOGGER.log(Level.FINE, new String("Acceptor List (Commit ACK) " + temp.Acceptors.toString()));
+		StringBuilder sb=new StringBuilder();
+		sb.append("UID - " + uid);
+		sb.append("\nAcceptor List (Commit ACK) - " + temp.Acceptors.toString());
+		this.AddLogEntry(sb.toString(), Level.INFO);
 		
 		if(temp.Acceptors.size()== Common.NoAcceptors)
 		{	
