@@ -1,7 +1,9 @@
 package node;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -35,7 +37,7 @@ public class Client extends Node implements Runnable{
 		String sitecrashid;
 		int sitecrashflag=0;
 		ClientOpMsg msg;
-		
+
 		while(true)
 		{
 			Scanner in = new Scanner(System.in);			 
@@ -104,9 +106,13 @@ public class Client extends Node implements Runnable{
 
 		System.out.println("Receiver Initialized");
 
-		while (true) {
+		Timestamp startTime=new Timestamp(new Date().getTime());
+		Timestamp curtime;
+
+		while (true) 
+		{
 			MessageWrapper msgwrap;
-			
+
 			try {
 				msgwrap = messageController.ReceiveMessage();
 				if (msgwrap != null ) {
@@ -128,7 +134,13 @@ public class Client extends Node implements Runnable{
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}    
+			}
+			curtime=new Timestamp(new Date().getTime());
+			if(curtime.after(Common.getUpdatedTimestamp(startTime, Common.commitabort_timeout+2)))
+			{
+				System.out.println("Transaction aborted. Timed out. ");
+				break;
+			}
 		}		
 	}
 
