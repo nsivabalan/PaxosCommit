@@ -9,6 +9,7 @@ import message.ClientOpMsg;
 import message.SiteCrashMsg;
 import common.Common;
 import common.Common.SiteCrashMsgType;
+import common.Common.State;
 import common.MessageWrapper;
 import common.Triplet;
 import common.Tuple;
@@ -34,33 +35,34 @@ public class Client extends Node implements Runnable{
 		String sitecrashid;
 		int sitecrashflag=0;
 		ClientOpMsg msg;
-				
+		
 		while(true)
 		{
 			Scanner in = new Scanner(System.in);			 
 			System.out.println("Enter a reqeust type (Read/Append/Crash/Receive) ");
 			requesttype = in.nextLine();
-			
+
 			if(requesttype.equals("Read"))
 			{
 				System.out.println("Enter a dest id(1 or 2) ");
 				destid = in.nextInt();
 				UUID uid = java.util.UUID.randomUUID();
-				
+
 				msg= new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.READ, "READ", uid);
 				this.sendClientOpMsg(msg, (destid==1)?this.paxosLeaderOneId:this.paxosLeaderTwoId);
 				System.out.println(" Created new request with uid - " + uid);
+				this.run();
 			}
 			else if (requesttype.equals("Append"))
 			{
 				System.out.println("Enter data (; separated)");
 				request = in.nextLine();				
 				String[] data = request.split(";");
-				
+
 				UUID uid = java.util.UUID.randomUUID();
 				ClientOpMsg msg1 = new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.APPEND, data[0], uid);
 				ClientOpMsg msg2 = new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.APPEND, data[1], uid);
-				
+
 				this.sendClientOpMsg(msg1, this.paxosLeaderOneId);				
 				this.sendClientOpMsg(msg2, this.paxosLeaderTwoId);
 				System.out.println(" Created new request with uid - " + uid);
@@ -81,13 +83,9 @@ public class Client extends Node implements Runnable{
 					SiteCrashMsg sitecrashmsg=new SiteCrashMsg(this.nodeId, SiteCrashMsgType.RECOVER);
 					sendSiteCrashMsg(sitecrashmsg, sitecrashid);
 				}				
-			}
-			else if(requesttype.equals("Receive"))
-			{
-				this.run();
-			}
+			}			
 
-		Thread.sleep(600);
+			Thread.sleep(600);
 		}
 	}
 
@@ -95,31 +93,35 @@ public class Client extends Node implements Runnable{
 	{
 		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);
 	}
-	
+
 	public void sendSiteCrashMsg(SiteCrashMsg msg, String destid) throws IOException
 	{
 		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);
 	}
 
 	public void run(){
-		
+
 		System.out.println("Receiver Initialized");
-		
+
 		while (true) {
 			MessageWrapper msgwrap;
+			
 			try {
 				msgwrap = messageController.ReceiveMessage();
-			
-				if(msgwrap.getmessageclass().equals("ClientOpMsg"))
-				{
-					ClientOpMsg msg = (ClientOpMsg) msgwrap.getDeSerializedInnerMessage();
-					ProcessClientResponseData(msg);
+				if (msgwrap != null ) {
+					//System.out.println(msgwrap);
+					if(msgwrap.getmessageclass() == ClientOpMsg.class)
+					{
+						ClientOpMsg msg = (ClientOpMsg) msgwrap.getDeSerializedInnerMessage();
+						ProcessClientResponseData(msg);
+						break;
+					}
 				}
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			 catch (IOException e) {
+			catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (InterruptedException e) {

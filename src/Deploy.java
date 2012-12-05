@@ -60,7 +60,8 @@ public class Deploy {
 			String paxosLeader2 = args[3];
 			
 			Client node = new Client(deployNodeId, paxosLeader1, paxosLeader2);
-			System.out.println("processing input");
+			
+			System.out.println("Processing Input");
 			node.ProcessInput();
 		}
 		

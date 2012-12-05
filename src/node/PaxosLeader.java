@@ -192,9 +192,9 @@ public class PaxosLeader extends Node{
 		else
 		{
 			//TODO: Respond with read of file.
-			String data=this.localResource.ReadResource(this.readLineNumber);
-			ClientOpMsg read_msg = new ClientOpMsg(this.nodeId, ClientOPMsgType.READ_RESPONSE, data, msg.getUid());
-			SendClientMessage(msg, msg.getNodeid());
+			
+			this.ProcessReadRequest(msg.getUid(), msg.getNodeid());		
+			
 		}		
 	}
 
@@ -218,10 +218,14 @@ public class PaxosLeader extends Node{
 
 
 	//Process New Read Request from Client
-	public String ProcessReadRequest()
+	public void ProcessReadRequest(UUID uid, String clientRequestKey) throws IOException
 	{
 		//TODO : Implement file line number logic.
-		return new String();
+		String data=this.localResource.ReadResource(this.readLineNumber);
+		ClientOpMsg read_msg = new ClientOpMsg(this.nodeId, ClientOPMsgType.READ_RESPONSE, data, uid);
+		SendClientMessage(read_msg, clientRequestKey);
+		System.out.println("Sent Read Data");
+		
 	}
 
 	//Process Ack from Acceptor

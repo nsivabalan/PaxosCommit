@@ -34,8 +34,10 @@ public class Node {
 		this.NodeState = Common.State.ACTIVE;
 		
 		//Bind the resource
-		if(!fileName.equals(""))
+		if(!fileName.equals("")){
 			this.localResource = new Resource(fileName, Common.FilePath);
+			Common.ReadLineCount = this.localResource.GetLineCount();
+		}
 
 		//RMQ Message Controller.
 		this.messageController = new MessageController(this.nodeId);

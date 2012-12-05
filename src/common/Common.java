@@ -23,7 +23,7 @@ public class Common {
 	public static Integer NoAcceptors = 3;	
 	public static Integer NoPaxosLeaders = 2;
 	public static String FilePath = "";
-	public static Integer ReadLineCount = 0;
+	public static Integer ReadLineCount = 5;
 
 	public static Integer init_timeout=10;
 	public static Integer commitabort_timeout=15;

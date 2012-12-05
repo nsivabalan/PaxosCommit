@@ -1,4 +1,5 @@
 package common;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,7 +32,7 @@ public class Resource {
 			System.out.println("Created File " + fileName);
 		}
 		
-		this.fileReader = new FileReader(this.file);
+		//this.fileReader = new FileReader(this.file);
 		
 	}
 
@@ -40,19 +41,24 @@ public class Resource {
 	{
 		StringBuilder data = new StringBuilder();
 		LineNumberReader lnr = null;
-
+		
+		this.fileReader = new FileReader(this.file);
+		
 		try {
+			data.append("\n --------------------");
+			data.append("\n File - "+this.fileName);
 			lnr = new LineNumberReader(this.fileReader);
 			String line = lnr.readLine();  
 
 			while (line != null && lnr.getLineNumber() <= readLineNumber ) {   
-				data.append(line);
+				data.append("\n  "+line);
 				line = lnr.readLine();  
 			}
 		}
 		finally {
 			lnr.close();
 		}
+		data.append("\n --------------------");
 		return data.toString();
 	}
 	
@@ -69,5 +75,14 @@ public class Resource {
 			e.printStackTrace();
 		    //TODO : Add to log.			
 		}
+	}
+	
+	public int GetLineCount() throws IOException
+	{
+		BufferedReader reader = new BufferedReader(new FileReader(this.file));
+		int lines = 0;
+		while (reader.readLine() != null) lines++;
+		reader.close();
+		return lines;
 	}
 }
