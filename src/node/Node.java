@@ -43,7 +43,7 @@ public class Node {
 		this.messageController = new MessageController(this.nodeId);
 
 		//Logging Specific
-		logFile = new FileHandler(Common.FilePath+"/"+this.nodeId+".log");
+		logFile = new FileHandler(Common.FilePath+"/"+this.nodeId+".log", true);
 		logFile.setFormatter(new SimpleFormatter());
 		LOGGER.setLevel(Level.INFO); //Sets the default level if not provided.		
 		LOGGER.addHandler(logFile);		
@@ -64,8 +64,8 @@ public class Node {
 	}
 
 	//Add a new log entry.
-	public void AddLogEntry(String message, String status, Level level){		
-		LOGGER.logp(level, this.getClass().toString(), message, status);		
+	public void AddLogEntry(String message, Level level){		
+		LOGGER.logp(level, this.getClass().toString(), "", message);		
 	}
 
 

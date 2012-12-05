@@ -98,6 +98,8 @@ public class Client extends Node implements Runnable{
 	public void sendClientOpMsg(ClientOpMsg msg, String destid) throws IOException
 	{
 		this.LOGGER.log(Level.FINE, new String("Sent "+msg));
+		this.AddLogEntry("Sent " + msg, Level.INFO);
+		
 		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);		
 	}
 
