@@ -139,8 +139,7 @@ public class TPCCoordinator extends Node {
 				TransactionStatus temp= uidTransactionStatusMap.get(uid);
 				Timestamp curtime;
 				if(temp.state == TPCState.INIT)
-				{
-					System.out.println("Timeout Check");
+				{					
 					curtime=new Timestamp(new Date().getTime());
 					if(curtime.after(Common.getUpdatedTimestamp(temp.timeout, Common.init_timeout)))
 					{
@@ -148,7 +147,8 @@ public class TPCCoordinator extends Node {
 						temp.timeout=new Timestamp(new Date().getTime());
 						this.uidTransactionStatusMap.put(uid, temp);
 						SendAbortMessage(uid, this.nodeId);
-						System.out.println("Aborting");
+						System.out.println("Aborting Transaction. Timed out.");
+						System.out.println("UID -" +uid);
 					}				
 				}
 				if(temp.state == TPCState.COMMIT)

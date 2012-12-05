@@ -41,12 +41,13 @@ public class Client extends Node implements Runnable{
 		while(true)
 		{
 			Scanner in = new Scanner(System.in);			 
-			System.out.println("Enter a reqeust type (Read/Append/Crash/Receive) ");
+			System.out.print("\nEnter a reqeust type (Read/Append/Crash) - ");
 			requesttype = in.nextLine();
 
 			if(requesttype.equals("Read"))
 			{
-				System.out.println("Enter a dest id(1 or 2) ");
+				System.out.print(" Enter a destination id (1 or 2) - ");
+				
 				destid = in.nextInt();
 				UUID uid = java.util.UUID.randomUUID();
 
@@ -57,9 +58,9 @@ public class Client extends Node implements Runnable{
 			}
 			else if (requesttype.equals("Append"))
 			{
-				System.out.println("Enter data (; separated)");
+				System.out.print(" Enter data to be inserted. (':' separated) - ");
 				request = in.nextLine();				
-				String[] data = request.split(";");
+				String[] data = request.split(":");
 
 				UUID uid = java.util.UUID.randomUUID();
 				ClientOpMsg msg1 = new ClientOpMsg(this.nodeId, Common.ClientOPMsgType.APPEND, data[0], uid);
@@ -72,9 +73,9 @@ public class Client extends Node implements Runnable{
 			}
 			else if(requesttype.equals("Crash"))
 			{
-				System.out.println("Enter a dest id");
+				System.out.print(" Enter a destination id - ");
 				sitecrashid = in.nextLine();
-				System.out.println("Crash(1) or Recover(2) ");
+				System.out.print(" Crash(1) or Recover(2) - ");
 				sitecrashflag = in.nextInt();
 				if(sitecrashflag==1)
 				{
@@ -104,7 +105,7 @@ public class Client extends Node implements Runnable{
 
 	public void run(){
 
-		System.out.println("Receiver Initialized");
+		System.out.println("\n Receiving..");
 
 		Timestamp startTime=new Timestamp(new Date().getTime());
 		Timestamp curtime;
@@ -147,7 +148,7 @@ public class Client extends Node implements Runnable{
 
 	public void ProcessClientResponseData(ClientOpMsg msg)
 	{
-		System.out.println("Received " + msg);
+		System.out.println(" Received " + msg);
 	}
 
 }
