@@ -3,11 +3,13 @@ package node;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.UUID;
 
@@ -40,6 +42,27 @@ public class Acceptor extends Node {
 		Timestamp timeout;
 	}
 
+	 Comparator<Tuple<Integer, UUID>> comparator = new StringLengthComparator();
+     PriorityQueue<Tuple<Integer, UUID>> queue = 
+         new PriorityQueue<Tuple<Integer, UUID>>(10, comparator);
+     
+     class StringLengthComparator implements Comparator<Tuple<Integer, UUID>>
+     {
+         @Override
+         public int compare(Tuple<Integer, UUID> x, Tuple<Integer, UUID> y)
+         {
+             if  (x.x< y.x)
+             {
+                 return -1;
+             }
+             if (x.x > y.x)
+             {
+                 return 1;
+             }
+             return 0;
+         }
+     }
+     
 	private String paxosLeaderId;
 	private String paxosLeaderExchange;
 	private Map<UUID, TransactionStatus> uidTransactionStatusMap;
@@ -202,14 +225,23 @@ public class Acceptor extends Node {
 			ProcessAppendToFile(uid);
 			
 			while(true)
-			{
-				break;
-				//TODO : Process buffer contents to commit.
+			{							
+				Tuple<Integer,UUID> temptuple=queue.peek();
+				if(temptuple.x==this.lastCommitGSN+1)
+				{
+					ProcessAppendToFile(temptuple.y);
+					queue.remove();
+				}
+				else
+				{
+					break;
+				}
 			}
 		}
 		else
 		{
-			//TODO : ADD TO BUFFER.			
+			//TODO : ADD TO BUFFER.	
+			this.queue.add(new Tuple(gsn,uid));	
 		}
 	}
 
