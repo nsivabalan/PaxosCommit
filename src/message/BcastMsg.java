@@ -14,15 +14,26 @@ public class BcastMsg extends MessageBase{
 	private String data;
 
 	//to bcast commit/abort msg
-	public BcastMsg(String nodeid,Common.BcastMsgType type, int gsn, UUID uid)
+	public BcastMsg(String nodeid,Common.BcastMsgType type, int gsn, UUID uid, String data)
 	{
 		this.nodeid=nodeid;
 		this.type=type;
 		this.gsn=gsn;
 		this.uid = uid;
+		this.data=data;
 	}
 	
 	
+	public String getData() {
+		return data;
+	}
+
+
+	public void setData(String data) {
+		this.data = data;
+	}
+
+
 	public String getNodeid() {
 		return nodeid;
 	}

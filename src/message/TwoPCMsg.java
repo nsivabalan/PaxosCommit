@@ -43,12 +43,14 @@ public class TwoPCMsg extends MessageBase{
 		this.gsn=gsn; 
 	}
 
-	public TwoPCMsg(String nodeId, UUID uid, int readLineNumber)
+	public TwoPCMsg(String nodeId, UUID uid, int readLineNumber,int gsn,Common.TwoPCMsgType type)
 	{
 		this.nodeid=nodeId;		
 		this.type= common.Common.TwoPCMsgType.ACK;
 		this.uid=uid;
 		this.readLineNumber = readLineNumber;
+		this.gsn=gsn;
+		this.type=type;
 	}
 	
 	//Paxos leader sends msg to TPC with uid and data

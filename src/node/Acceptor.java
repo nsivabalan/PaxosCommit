@@ -80,7 +80,7 @@ public class Acceptor extends Node {
 					System.out.println("Received " + msg);
 					
 					if(msg.getType() == BcastMsgType.COMMIT_ACK)
-						ProcessCommitAckMessage(msg.getUID(), msg.getGsn(), msg.getNodeid());
+						ProcessCommitAckMessage(msg.getUID(), msg.getGsn(), msg.getNodeid(),msg.getData());
 
 					else if (msg.getType() == BcastMsgType.ABORT_ACK)
 						ProcessAbortAckMessage(msg.getUID(), msg.getNodeid());
@@ -138,7 +138,7 @@ public class Acceptor extends Node {
 					if(curtime.after(Common.getUpdatedTimestamp(temp.timeout, Common.commitabort_timeout)))
 					{
 						temp.timeout=new Timestamp(new Date().getTime());
-						SendCommitMessage(uid);
+						BcastCommitMessage(uid);
 						this.uidTransactionStatusMap.put(uid,temp);
 										
 					}
@@ -220,11 +220,11 @@ public class Acceptor extends Node {
 	}
 	
     //to broadcast to other acceptors about the commit
-	public void SendCommitMessage(UUID uid) throws IOException
+	public void BcastCommitMessage(UUID uid) throws IOException
 	{
-		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);		
+		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);	
 		//PaxosMsg commitmsg = new PaxosMsg(this.nodeId, Common.PaxosMsgType.COMMIT, uid, temp.gsn);
-		BcastMsg bcastmsg=new BcastMsg(this.nodeId, BcastMsgType.COMMIT_ACK, temp.gsn,uid);
+		BcastMsg bcastmsg=new BcastMsg(this.nodeId, BcastMsgType.COMMIT_ACK, temp.gsn,uid,temp.data);
 		SendBcastMessage(bcastmsg);
 	}
 
@@ -238,9 +238,22 @@ public class Acceptor extends Node {
 	}
 	
 	//method used to process commit acknowledgement from other acceptors
-	public void ProcessCommitAckMessage(UUID uid, int gsn, String nodeid)
+	public void ProcessCommitAckMessage(UUID uid, int gsn, String nodeid,String data)
 	{
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);		
+		if(temp==null){
+			temp = new TransactionStatus();
+			
+			temp.data = data;
+			temp.state = AcceptorState.COMMIT;
+			temp.timeout=new Timestamp(new Date().getTime());
+			temp.Acceptors=new HashSet<String>();
+			temp.Acceptors.add(nodeid);
+			temp.gsn=gsn;
+			this.uidTransactionStatusMap.put(uid, temp);
+			ProcessCommitToFile(uid, gsn);
+		}
+		else{
 		temp.Acceptors.add(nodeid);
 		System.out.println("Acceptor List (commit ack) " + temp.Acceptors.toString());
 		if(temp.Acceptors.size()== Common.NoAcceptors)
@@ -256,7 +269,7 @@ public class Acceptor extends Node {
 			this.uidTransactionStatusMap.put(uid, temp);
 			ProcessCommitToFile(uid, gsn);
 		}
-
+		}
 
 	}
 

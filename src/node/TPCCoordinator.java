@@ -104,7 +104,7 @@ public class TPCCoordinator extends Node {
 						ProcessInfoRequest(msg.getUID(), msg.getNodeid(), msg.getClientRoutingKey());
 
 					else if (msg.getType() == TwoPCMsgType.COMMIT)
-						ProcessCommitAck(msg.getUID(), msg.getNodeid());
+						ProcessCommitAck(msg.getUID(), msg.getNodeid(),msg.getGsn());
 
 					else if (msg.getType() == TwoPCMsgType.ABORT)
 						ProcessAbortAck(msg.getUID(), msg.getNodeid());
@@ -206,7 +206,7 @@ public class TPCCoordinator extends Node {
 	}
 
 	//method used to process commit acknowledgment from either of paxos leader
-	public void ProcessCommitAck(UUID uid, String nodeid) throws IOException
+	public void ProcessCommitAck(UUID uid, String nodeid, int gsn) throws IOException
 	{
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
 		temp.paxosLeaderListCommit.add(nodeid);
@@ -214,6 +214,7 @@ public class TPCCoordinator extends Node {
 		if (temp.paxosLeaderListCommit.size() == 1)
 		{	
 			temp.timeout=new Timestamp(new Date().getTime());
+			temp.gsn=gsn;
 			this.uidTransactionStatusMap.put(uid, temp);
 			ClientOpMsg msg = new ClientOpMsg(nodeid, ClientOPMsgType.APPEND_RESPONSE, "Committed", uid);
 			SendClientMessage(msg, temp.clientRoutingKey);			
@@ -221,9 +222,10 @@ public class TPCCoordinator extends Node {
 		else if (temp.paxosLeaderListCommit.size() == Common.NoPaxosLeaders) 
 		{
 			temp.state = TPCState.COMMIT_ACK;
+			temp.gsn=gsn;
 			this.uidTransactionStatusMap.put(uid, temp);
 			//TODO: Update/Send Readline number to paxos leader.
-			TwoPCMsg msg = new TwoPCMsg(this.nodeId, uid, GetReadlineNumber());
+			TwoPCMsg msg = new TwoPCMsg(this.nodeId, uid, GetReadlineNumber(),temp.gsn,TwoPCMsgType.ACK);
 			SendTPCMessage(msg);
 		}
 	}

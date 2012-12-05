@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import message.ClientOpMsg;
+import message.SiteCrashMsg;
 import common.Common;
+import common.Common.SiteCrashMsgType;
 import common.MessageWrapper;
 import common.Triplet;
 import common.Tuple;
@@ -27,11 +29,13 @@ public class Client extends Node implements Runnable{
 	{
 		String requesttype,request;
 		int destid;
+		String sitecrashid;
+		int sitecrashflag=0;
 		ClientOpMsg msg;
 		while(true)
 		{
 			Scanner in = new Scanner(System.in);			 
-			System.out.println("Enter a reqeust type (read/append) ");
+			System.out.println("Enter a reqeust type (read/append/sitecrash) ");
 			requesttype = in.nextLine();
 			
 			if(requesttype.equals("read")){
@@ -50,12 +54,33 @@ public class Client extends Node implements Runnable{
 				//msg.setNodeid(paxosLeaderTwoId);
 				this.sendClientOpMsg(msg, this.paxosLeaderTwoId);
 			}
+			else if(requesttype.equals("sitecrash")){
+				System.out.println("Enter a dest id");
+				sitecrashid = in.nextLine();
+				System.out.println("Crash(1) or Recover(2) ");
+				sitecrashflag = in.nextInt();
+				if(sitecrashflag==1)
+				{
+					SiteCrashMsg sitecrashmsg=new SiteCrashMsg(this.nodeId, SiteCrashMsgType.CRASH);
+					sendSiteCrashMsg(sitecrashmsg, sitecrashid);
+				}
+				else if(sitecrashflag ==2)
+				{
+					SiteCrashMsg sitecrashmsg=new SiteCrashMsg(this.nodeId, SiteCrashMsgType.RECOVER);
+					sendSiteCrashMsg(sitecrashmsg, sitecrashid);
+				}
+			}
 
 		Thread.sleep(600);
 		}
 	}
 
 	public void sendClientOpMsg(ClientOpMsg msg, String destid) throws IOException
+	{
+		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);
+	}
+	
+	public void sendSiteCrashMsg(SiteCrashMsg msg, String destid) throws IOException
 	{
 		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);
 	}
