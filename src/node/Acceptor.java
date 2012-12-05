@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import message.BcastMsg;
 import message.PaxosMsg;
@@ -99,6 +100,7 @@ public class Acceptor extends Node {
 					
 					//Print msg
 					System.out.println("Received " + msg);
+					LOGGER.log(Level.FINE, new String("Received" + msg));
 					
 					if(msg.getType() == BcastMsgType.COMMIT_ACK)
 						ProcessCommitAckMessage(msg.getUID(), msg.getGsn(), msg.getNodeid(),msg.getData());
@@ -113,6 +115,7 @@ public class Acceptor extends Node {
 
 					//Print msg
 					System.out.println("Received " + msg);
+					LOGGER.log(Level.FINE, new String("Received" + msg));
 					
 					if(msg.getType() == PaxosMsgType.ACCEPT)
 						ProcessAcceptMessage(msg.getUID(), msg.getData());
@@ -129,6 +132,7 @@ public class Acceptor extends Node {
 					
 					//Print msg
 					System.out.println("Received " + msg);
+					LOGGER.log(Level.FINE, new String("Received" + msg));
 					
 					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
 					{
@@ -187,6 +191,8 @@ public class Acceptor extends Node {
 	public void SendMessageToPaxosLeader(PaxosMsg msg) throws IOException
 	{	
 		System.out.println("Sent " + msg);
+		LOGGER.log(Level.FINE, new String("Sent" + msg));
+		
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		messageController.SendMessage(msgwrap, Common.DirectMessageExchange, this.paxosLeaderId);
 	}
@@ -264,6 +270,7 @@ public class Acceptor extends Node {
 	{
 		//Print msg
 		System.out.println("Sent " + msg);
+		LOGGER.log(Level.FINE, new String("Sent" + msg));
 
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.paxosLeaderExchange, "");	
@@ -287,10 +294,15 @@ public class Acceptor extends Node {
 		}
 		else{
 		temp.Acceptors.add(nodeid);
-		System.out.println("Acceptor List (commit ack) " + temp.Acceptors.toString());
+		
+		System.out.println("UID - "+uid);
+		System.out.println("Acceptor List (Commit ACK) - " + temp.Acceptors.toString());
+		
+		LOGGER.log(Level.FINE, new String("UID - "+uid));
+		LOGGER.log(Level.FINE, new String("Acceptor List (Commit ACK) " + temp.Acceptors.toString()));
+		
 		if(temp.Acceptors.size()== Common.NoAcceptors)
-		{			
-			System.out.println(" total no of acceptors reached ");
+		{	
 			temp.state=AcceptorState.COMMIT_ACK;
 			this.uidTransactionStatusMap.put(uid, temp);
 		}

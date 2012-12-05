@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import message.ClientOpMsg;
 import message.SiteCrashMsg;
@@ -85,6 +86,7 @@ public class Client extends Node implements Runnable{
 				else if(sitecrashflag ==2)
 				{
 					SiteCrashMsg sitecrashmsg=new SiteCrashMsg(this.nodeId, SiteCrashMsgType.RECOVER);
+					
 					sendSiteCrashMsg(sitecrashmsg, sitecrashid);
 				}				
 			}			
@@ -95,11 +97,13 @@ public class Client extends Node implements Runnable{
 
 	public void sendClientOpMsg(ClientOpMsg msg, String destid) throws IOException
 	{
-		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);
+		this.LOGGER.log(Level.FINE, new String("Sent "+msg));
+		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);		
 	}
 
 	public void sendSiteCrashMsg(SiteCrashMsg msg, String destid) throws IOException
 	{
+		this.LOGGER.log(Level.FINE, new String("Sent "+msg));
 		messageController.SendMessage(Common.CreateMessageWrapper(msg), Common.DirectMessageExchange, destid);
 	}
 
@@ -117,7 +121,7 @@ public class Client extends Node implements Runnable{
 			try {
 				msgwrap = messageController.ReceiveMessage();
 				if (msgwrap != null ) {
-					//System.out.println(msgwrap);
+					
 					if(msgwrap.getmessageclass() == ClientOpMsg.class)
 					{
 						ClientOpMsg msg = (ClientOpMsg) msgwrap.getDeSerializedInnerMessage();
@@ -149,6 +153,7 @@ public class Client extends Node implements Runnable{
 	public void ProcessClientResponseData(ClientOpMsg msg)
 	{
 		System.out.println(" Received " + msg);
+		this.LOGGER.log(Level.FINE, new String("Received - "+msg));
 	}
 
 }

@@ -19,15 +19,9 @@ public class Deploy {
 	 * @throws InterruptedException 
 	 */
 	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
-		// TODO Auto-generated method stub
 		
 		Common.RMQServer = System.getenv("RABBITMQSERVER");
-		//System.out.println(" server "+Common.RMQServer);
-		//Common.RMQServer = "ec2-54-242-187-230.compute-1.amazonaws.com";
-		
 		Common.FilePath = System.getenv("FILEPATH");
-		//System.out.println(" file path "+Common.FilePath);
-		//Common.FilePath = "/home/anduril/deploy";
 		
 		String deployNodeId = args[0];
 		String deployNodeType = args[1];

@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
@@ -99,6 +100,7 @@ public class TPCCoordinator extends Node {
 
 					//Print msg
 					System.out.println("Received " + msg);
+					LOGGER.log(Level.FINE, new String("Received "+msg));
 					
 					if (msg.getType() == TwoPCMsgType.INFO)
 						ProcessInfoRequest(msg.getUID(), msg.getNodeid(), msg.getClientRoutingKey());
@@ -116,6 +118,7 @@ public class TPCCoordinator extends Node {
 					
 					//Print msg
 					System.out.println("Received " + msg);
+					LOGGER.log(Level.FINE, new String("Received "+msg));
 					
 					if(msg.getType() == SiteCrashMsgType.CRASH && this.NodeState == State.ACTIVE)
 					{
@@ -147,8 +150,12 @@ public class TPCCoordinator extends Node {
 						temp.timeout=new Timestamp(new Date().getTime());
 						this.uidTransactionStatusMap.put(uid, temp);
 						SendAbortMessage(uid, this.nodeId);
-						System.out.println("Aborting Transaction. Timed out.");
+						
 						System.out.println("UID -" +uid);
+						System.out.println("Aborting Transaction. Timed out.");
+												
+						LOGGER.log(Level.FINE, new String("UID - "+uid));
+						LOGGER.log(Level.FINE, new String("Aborting Transaction (Timed out)."));						
 					}				
 				}
 				if(temp.state == TPCState.COMMIT)
@@ -171,7 +178,11 @@ public class TPCCoordinator extends Node {
 	{
 		if(this.uidTransactionStatusMap.containsKey(uid))
 		{
+			System.out.println("UID - "+uid);
 			System.out.println("Processing Info Request");
+						
+			LOGGER.log(Level.FINE, new String("UID = "+uid));
+			LOGGER.log(Level.FINE, new String("Processing INFO Request" + uid));
 			
 			TransactionStatus temp = this.uidTransactionStatusMap.get(uid);
 			if(temp.state == TPCState.ABORT)
@@ -183,7 +194,10 @@ public class TPCCoordinator extends Node {
 
 			if (temp.paxosLeaderListPrepare.size() == Common.NoPaxosLeaders)
 			{
+				
 				System.out.println("Preparing Commit");
+				LOGGER.log(Level.FINE, new String("Initiating Commit"));
+				
 				temp.state = TPCState.COMMIT;
 				int gsn = this.getNewGSN();
 				temp.gsn = gsn;
@@ -278,10 +292,15 @@ public class TPCCoordinator extends Node {
 	//call this method for each PL with diff lsn values
 	public void SendCommitMessage(UUID uid) throws IOException
 	{
-		System.out.println("Sending Commit Message.");
+		
 		TransactionStatus temp = this.uidTransactionStatusMap.get(uid);		
 		TwoPCMsg commitmsg = new TwoPCMsg(this.nodeId, Common.TwoPCMsgType.COMMIT, uid, temp.gsn);
 
+		System.out.println("UID - " + uid);
+		System.out.println("Sending Commit Message. "+commitmsg);
+		LOGGER.log(Level.FINE, new String("UID = "+uid));
+		LOGGER.log(Level.FINE, new String("Sent - "+commitmsg));
+		
 		SendTPCMessage(commitmsg);
 	}
 
@@ -290,6 +309,7 @@ public class TPCCoordinator extends Node {
 	{
 		//Print msg
 		System.out.println("Sent " + msg);
+		LOGGER.log(Level.FINE, new String("Sent - "+msg));
 		
 		MessageWrapper msgwrap = new MessageWrapper(Common.Serialize(msg), msg.getClass());
 		this.messageController.SendMessage(msgwrap, this.TwoPCExchange, "");
