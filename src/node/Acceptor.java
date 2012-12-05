@@ -27,8 +27,6 @@ import common.Common.PaxosMsgType;
 import common.Common.SiteCrashMsgType;
 import common.Common.State;
 import common.MessageWrapper;
-import common.RMQReceiver;
-import common.RMQSender_Old;
 import common.Triplet;
 import common.Tuple;
 
